@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>点検物件 顧客管理システム</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#f0f2f5;--white:#fff;--surface:#fff;--border:#e2e6ed;--border2:#c8cdd8;
+  --accent:#1a56db;--accent-l:#ebf0ff;--accent-h:#1447b8;
+  --green:#057a55;--green-bg:#def7ec;
+  --red:#c81e1e;--red-bg:#fde8e8;
+  --yellow:#8f6300;--yellow-bg:#fdf6b2;
+  --orange:#c05621;--orange-bg:#feecdc;
+  --purple:#5521b5;--purple-bg:#edebff;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 12px rgba(0,0,0,.08);
+  --sh-lg:0 10px 30px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* ─── HEADER ─── */
+header{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.logo{display:flex;align-items:center;gap:.75rem;font-weight:700;font-size:.95rem}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{color:#fff}
+.header-r{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.conn-badge{display:flex;align-items:center;gap:.4rem;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.conn-ok{background:var(--green-bg);color:var(--green);border:1px solid #a3e3c7}
+.conn-err{background:var(--red-bg);color:var(--red);border:1px solid #f8b4b4}
+.conn-load{background:var(--yellow-bg);color:var(--yellow);border:1px solid #fcd96a}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* ─── SETUP BANNER ─── */
+.setup-banner{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:1rem 1.25rem;margin:1.5rem 1.5rem 0;display:flex;align-items:flex-start;gap:.75rem}
+.setup-banner.hidden{display:none}
+.setup-text h3{font-size:.9rem;font-weight:700;color:#92400e;margin-bottom:.3rem}
+.setup-text p{font-size:.82rem;color:#92400e;line-height:1.7}
+.setup-text code{background:rgba(0,0,0,.08);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace;font-size:.78rem}
+.setup-row{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap}
+.setup-input{flex:1;min-width:220px;padding:.5rem .75rem;border:1px solid #fcd34d;border-radius:6px;font-family:'DM Mono',monospace;font-size:.78rem;background:#fff;color:var(--text);outline:none}
+.setup-input:focus{border-color:var(--accent)}
+
+/* ─── MAIN ─── */
+.main{padding:1.5rem;max-width:1400px;margin:0 auto}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:0;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;box-shadow:var(--sh)}
+.tab-btn{padding:.45rem 1.1rem;border-radius:7px;border:none;background:none;font-family:'Noto Sans JP',sans-serif;font-size:.83rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab-btn.active{background:var(--accent);color:#fff}
+.tab-btn:hover:not(.active){background:var(--bg)}
+
+/* ─── STATS ─── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.25rem}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;box-shadow:var(--sh);border-left:4px solid transparent}
+.stat-card.blue{border-left-color:var(--accent)}
+.stat-card.green{border-left-color:var(--green)}
+.stat-card.orange{border-left-color:#e3660a}
+.stat-card.purple{border-left-color:#7c3aed}
+.stat-label{font-size:.72rem;color:var(--text2);margin-bottom:.35rem;font-weight:500}
+.stat-val{font-size:1.4rem;font-weight:700;font-family:'DM Mono',monospace}
+.stat-val.blue{color:var(--accent)}
+.stat-val.green{color:var(--green)}
+.stat-val.orange{color:#c05621}
+.stat-val.purple{color:#5521b5}
+
+/* ─── TOOLBAR ─── */
+.toolbar{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:.875rem 1rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;box-shadow:var(--sh)}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);width:15px;height:15px;pointer-events:none}
+.search-input{width:100%;padding:.5rem .75rem .5rem 2.1rem;border:1px solid var(--border2);border-radius:7px;font-family:'Noto Sans JP',sans-serif;font-size:.85rem;outline:none;color:var(--text);background:var(--bg);transition:border-color .15s}
+.search-input:focus{border-color:var(--accent);background:#fff}
+select.f-sel{padding:.5rem .75rem;border:1px solid var(--border2);border-radius:7px;font-family:'Noto Sans JP',sans-serif;font-size:.85rem;color:var(--text);background:var(--bg);cursor:pointer;outline:none}
+select.f-sel:focus{border-color:var(--accent)}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:7px;font-family:'Noto Sans JP',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-h)}
+.btn-outline{background:#fff;border:1px solid var(--border2);color:var(--text2)}.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#046c4e}
+.btn-orange{background:#e3660a;color:#fff}.btn-orange:hover{background:#c05621}
+.btn-sm{padding:.3rem .65rem;font-size:.78rem}
+.btn-edit-sm{background:#fff;border:1px solid var(--border2);color:var(--text2)}.btn-edit-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-del-sm{background:#fff;border:1px solid var(--border2);color:var(--text2)}.btn-del-sm:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
+/* ─── TABLE ─── */
+.table-card{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--sh)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+thead{background:var(--bg)}
+th{padding:.7rem 1rem;text-align:left;font-size:.73rem;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--text)}
+th.sorted{color:var(--accent)}
+td{padding:.8rem 1rem;font-size:.84rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
+.td-name{font-weight:600}
+.td-addr{color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-phone a{color:var(--accent);text-decoration:none;font-family:'DM Mono',monospace;font-size:.8rem}
+.td-phone a:hover{text-decoration:underline}
+.td-mono{font-family:'DM Mono',monospace;font-size:.82rem}
+.td-memo{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
+.td-acts{display:flex;gap:.35rem}
+
+/* ─── AMOUNT GROUP in table ─── */
+.amt-mini{display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:170px}
+.amt-row{display:flex;justify-content:space-between;align-items:center;font-size:.72rem}
+.amt-lbl{color:var(--text3)}
+.amt-num{font-family:'DM Mono',monospace;font-weight:500}
+.amt-total{font-family:'DM Mono',monospace;font-weight:700;font-size:.85rem;color:var(--accent);border-top:1px solid var(--border);padding-top:3px;margin-top:2px;grid-column:1/-1;display:flex;justify-content:space-between}
+
+/* ─── MONTH BADGE ─── */
+.month-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:5px;font-size:.78rem;font-weight:600;background:var(--accent-l);color:var(--accent);white-space:nowrap}
+.month-badge.soon{background:var(--red-bg);color:var(--red)}
+.month-badge.near{background:var(--yellow-bg);color:var(--yellow)}
+
+/* ─── TABLE FOOTER ─── */
+.table-footer{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;border-top:1px solid var(--border);background:var(--bg);font-size:.78rem;color:var(--text2);flex-wrap:wrap;gap:.5rem}
+.page-btns{display:flex;gap:.3rem}
+.page-btns button{width:30px;height:30px;border:1px solid var(--border2);background:#fff;border-radius:6px;cursor:pointer;font-size:.78rem;color:var(--text2);transition:all .15s}
+.page-btns button:hover,.page-btns button.active{border-color:var(--accent);color:var(--accent)}
+.page-btns button.active{background:var(--accent);color:#fff}
+.page-btns button:disabled{opacity:.35;cursor:not-allowed}
+
+/* ─── MODAL ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);backdrop-filter:blur(3px);z-index:300;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:1.75rem;width:100%;max-width:680px;max-height:94vh;overflow-y:auto;box-shadow:var(--sh-lg);animation:fadeUp .22s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-title{font-size:1rem;font-weight:700}
+.modal-close{width:30px;height:30px;border:1px solid var(--border2);background:#fff;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:1rem}
+.modal-close:hover{background:var(--bg)}
+
+/* ─── FORM ─── */
+.section-title{font-size:.78rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin:1.25rem 0 .75rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.section-title span{width:3px;height:14px;background:var(--accent);border-radius:2px;display:inline-block}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.fg{display:flex;flex-direction:column;gap:.35rem}
+.fg.full{grid-column:1/-1}
+.fg.third{grid-column:span 1}
+label{font-size:.77rem;font-weight:600;color:var(--text2)}
+.fi,.fs,.fta{padding:.55rem .75rem;border:1px solid var(--border2);border-radius:7px;font-family:'Noto Sans JP',sans-serif;font-size:.875rem;color:var(--text);outline:none;transition:border-color .15s;background:#fff;width:100%}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.08)}
+.fta{resize:vertical;min-height:72px}
+.fi-prefix{position:relative}
+.fi-prefix .prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.85rem;pointer-events:none}
+.fi-prefix .fi{padding-left:1.8rem}
+.amt-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.amt-total-row{background:var(--accent-l);border:1px solid #c3d3f8;border-radius:7px;padding:.6rem .9rem;display:flex;justify-content:space-between;align-items:center;font-size:.85rem;font-weight:700;color:var(--accent);margin-top:.5rem;grid-column:1/-1}
+.form-actions{display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border)}
+
+/* ─── IMPORT MODAL ─── */
+.import-zone{border:2px dashed var(--border2);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.import-zone:hover,.import-zone.drag{border-color:var(--accent);background:var(--accent-l)}
+.import-zone svg{width:40px;height:40px;color:var(--text3);margin:0 auto .75rem;display:block}
+.import-zone p{font-size:.85rem;color:var(--text2)}
+.import-zone small{font-size:.75rem;color:var(--text3)}
+.import-preview{margin-top:1rem;max-height:300px;overflow-y:auto}
+.import-preview table{min-width:500px}
+.import-preview th,.import-preview td{padding:.4rem .7rem;font-size:.78rem}
+.import-preview thead{background:var(--accent);color:#fff;position:sticky;top:0}
+.map-grid{display:grid;gap:.6rem;margin-top:1rem}
+.map-row{display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:center;font-size:.82rem}
+.map-arrow{color:var(--text3)}
+.import-steps{display:flex;gap:.5rem;margin-bottom:1rem}
+.step{flex:1;padding:.5rem;background:var(--bg);border-radius:7px;border:1px solid var(--border);text-align:center;font-size:.75rem;color:var(--text2)}
+.step.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;box-shadow:var(--sh-lg);z-index:500;transform:translateY(80px);opacity:0;transition:all .3s ease;pointer-events:none;max-width:320px}
+.toast.show{transform:none;opacity:1}
+.toast.ok{background:#065f46;color:#fff}
+.toast.err{background:#991b1b;color:#fff}
+.toast.info{background:#1e3a8a;color:#fff}
+
+/* ─── LOADING ─── */
+.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.75);display:none;align-items:center;justify-content:center;z-index:400}
+.loading-ov.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.empty-state{text-align:center;padding:3rem 2rem;color:var(--text3)}
+.empty-state svg{width:44px;height:44px;margin:0 auto .75rem;display:block;opacity:.3}
+
+/* ─── PRIVACY MODE ─── */
+.privacy-btn{display:none}
+.amount-mask{
+  display:inline-block;
+  background:var(--border2);
+  color:transparent;
+  border-radius:4px;
+  user-select:none;
+  min-width:60px;
+  height:1em;
+  vertical-align:middle;
+}
+@media(max-width:640px){
+  .main{padding:1rem}
+  .form-grid,.amt-grid{grid-template-columns:1fr}
+  .amt-total-row{grid-column:1/-1}
+  .stats-row{grid-template-columns:1fr 1fr}
+  header{padding:0 1rem}
+  .logo>span{display:none}
+  .table-wrap{display:none}
+  .mobile-cards{display:flex !important}
+  .toolbar{gap:.5rem}
+  .btn span.btn-label{display:none}
+  .privacy-btn{display:inline-flex}
+}
+
+/* ─── MOBILE CARDS ─── */
+.mobile-cards{
+  display:none;
+  flex-direction:column;
+  gap:.75rem;
+  padding:1rem;
+}
+.m-card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1rem 1.1rem;
+  box-shadow:var(--sh);
+  animation:fadeUp .2s ease;
+}
+.m-card-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  margin-bottom:.75rem;
+  gap:.5rem;
+}
+.m-card-name{
+  font-weight:700;
+  font-size:.95rem;
+  color:var(--text);
+  line-height:1.4;
+}
+.m-card-contact{
+  font-size:.78rem;
+  color:var(--text2);
+  margin-top:2px;
+}
+.m-card-acts{display:flex;gap:.4rem;flex-shrink:0}
+.m-card-body{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.5rem .75rem;
+  margin-bottom:.75rem;
+}
+.m-field{display:flex;flex-direction:column;gap:2px}
+.m-field-label{font-size:.68rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.m-field-value{font-size:.82rem;color:var(--text);font-weight:500}
+.m-field-value a{color:var(--accent);text-decoration:none}
+.m-field-value.mono{font-family:'DM Mono',monospace}
+.m-card-amounts{
+  background:var(--bg);
+  border-radius:8px;
+  padding:.65rem .8rem;
+  margin-bottom:.75rem;
+}
+.m-amt-title{font-size:.7rem;color:var(--text2);font-weight:600;margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.04em}
+.m-amt-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem}
+.m-amt-row{display:flex;justify-content:space-between;font-size:.75rem}
+.m-amt-lbl{color:var(--text3)}
+.m-amt-num{font-family:'DM Mono',monospace;font-weight:500}
+.m-amt-total{
+  display:flex;justify-content:space-between;
+  border-top:1px solid var(--border);
+  margin-top:.4rem;padding-top:.4rem;
+  font-weight:700;font-size:.82rem;color:var(--accent);
+  font-family:'DM Mono',monospace;
+}
+.m-card-months{display:flex;flex-wrap:wrap;gap:.3rem}
+.m-memo{
+  font-size:.78rem;color:var(--text2);
+  background:var(--bg);border-radius:6px;
+  padding:.5rem .7rem;margin-top:.5rem;
+  border-left:3px solid var(--border2);
+  line-height:1.6;
+}
+.m-empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.85rem}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <span>点検物件 顧客管理システム</span>
+  </div>
+  <div class="header-r">
+    <div class="conn-badge conn-load" id="connBadge"><div class="dot"></div><span id="connTxt">接続中...</span></div>
+    <div class="conn-badge" id="countdownBadge" style="display:none;background:#f0f4ff;color:#4b6cb7;border:1px solid #c3d3f8;font-family:'DM Mono',monospace">
+      🔄 <span id="countdownTxt">5:00</span>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="loadData(); if(GAS_URL){secondsLeft=AUTO_REFRESH_MIN*60;updateCountdown();}">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>更新
+    </button>
+    <button class="btn btn-outline btn-sm" id="disconnectBtn" onclick="openSettings()" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>接続設定
+    </button>
+  </div>
+</header>
+
+<!-- SETUP BANNER -->
+<div class="setup-banner" id="setupBanner">
+  <div style="font-size:1.2rem;flex-shrink:0;margin-top:2px">⚙️</div>
+  <div class="setup-text">
+    <h3>初期設定：GAS WebアプリURLを設定してください</h3>
+    <p>Google Apps Script → デプロイ → 新しいデプロイ → <code>ウェブアプリ</code> でURLを取得し、下に貼り付けてください。</p>
+    <div class="setup-row">
+      <input class="setup-input" id="gasUrlInput" type="text" placeholder="https://script.google.com/macros/s/...">
+      <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">保存して接続</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-hd">
+      <div class="modal-title">⚙️ 接続設定</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div style="background:var(--green-bg);border:1px solid #a3e3c7;border-radius:8px;padding:.9rem 1rem;margin-bottom:1.25rem;font-size:.83rem;color:var(--green)">
+      <strong>✅ 現在接続中</strong><br>
+      <span style="font-family:'DM Mono',monospace;font-size:.75rem;word-break:break-all;opacity:.8" id="currentUrlDisp"></span>
+    </div>
+
+    <p style="font-size:.83rem;color:var(--text2);margin-bottom:1rem">GAS接続URLを変更するか、切断（ログアウト）できます。</p>
+
+    <div class="fg" style="margin-bottom:1rem">
+      <label>GAS WebアプリURL</label>
+      <input class="fi" id="settingsUrlInput" type="text" placeholder="https://script.google.com/macros/s/...">
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <button class="btn btn-primary" onclick="updateGasUrl()" style="justify-content:center">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        URLを更新して再接続
+      </button>
+      <button class="btn" onclick="logout()" style="justify-content:center;background:#fff;border:1px solid var(--red);color:var(--red)">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        切断（ログアウト）
+      </button>
+    </div>
+
+    <p style="font-size:.75rem;color:var(--text3);margin-top:1rem;text-align:center">
+      ※切断してもGoogleスプレッドシートのデータは削除されません
+    </p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('list',this)">📋 顧客一覧</button>
+    <button class="tab-btn" onclick="switchTab('summary',this)">📊 金額サマリー</button>
+  </div>
+
+  <!-- LIST TAB -->
+  <div id="tab-list">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card blue"><div class="stat-label">総顧客数</div><div class="stat-val blue" id="st-total">—</div></div>
+      <div class="stat-card green"><div class="stat-label">今月点検</div><div class="stat-val green" id="st-this-month">—</div></div>
+      <div class="stat-card orange"><div class="stat-label">来月点検</div><div class="stat-val orange" id="st-next-month">—</div></div>
+      <div class="stat-card purple"><div class="stat-label">点検金額合計</div><div class="stat-val purple" id="st-total-amt">—</div></div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="searchQ" placeholder="物件名・住所・担当者で検索..." oninput="renderTable()">
+      </div>
+      <select class="f-sel" id="monthFilter" onchange="renderTable()">
+        <option value="">すべての点検月</option>
+        <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+        <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+        <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新規登録
+      </button>
+      <button class="btn btn-green" onclick="openImport()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Excel/CSV取込
+      </button>
+      <button class="btn btn-outline btn-sm privacy-btn" id="privacyBtn" onclick="togglePrivacy()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        金額を隠す
+      </button>
+      <button class="btn btn-outline" onclick="exportCSV()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV出力
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('propertyName')" id="th-propertyName">物件名 ↕</th>
+              <th onclick="sortBy('address')" id="th-address">住所 ↕</th>
+              <th>電話番号</th>
+              <th onclick="sortBy('contact')" id="th-contact">担当者 ↕</th>
+              <th>点検金額内訳</th>
+              <th onclick="sortBy('closingDay')" id="th-closingDay">締め日 ↕</th>
+              <th onclick="sortBy('paymentDay')" id="th-paymentDay">支払日 ↕</th>
+              <th>点検月</th>
+              <th>メモ</th>
+              <th style="min-width:100px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="mobile-cards" id="mobileCards"></div>
+      <div class="table-footer">
+        <span id="tableInfo">0 件</span>
+        <div class="page-btns" id="pageBtns"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div id="tab-summary" style="display:none">
+    <div class="table-card">
+      <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);font-weight:700;font-size:.9rem">💰 顧客別 点検金額サマリー</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>物件名</th>
+              <th>担当者</th>
+              <th class="td-mono">機器点検</th>
+              <th class="td-mono">総合点検</th>
+              <th class="td-mono">防火対象物点検</th>
+              <th class="td-mono">防火設備点検</th>
+              <th class="td-mono" style="color:var(--accent);font-weight:700">合計</th>
+              <th>締め日</th>
+              <th>支払日</th>
+              <th>点検月</th>
+            </tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+          <tfoot id="summaryFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ─── RECORD MODAL ─── -->
+<div class="modal-bg" id="recModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modalTitle">新規顧客登録</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="section-title"><span></span>基本情報</div>
+    <div class="form-grid">
+      <div class="fg full"><label>物件名 *</label><input class="fi" id="f-propertyName" placeholder="例: ○○ビル 3F"></div>
+      <div class="fg full"><label>住所</label><input class="fi" id="f-address" placeholder="例: 山形県酒田市○○1-2-3"></div>
+      <div class="fg"><label>電話番号</label><input class="fi" id="f-phone" type="tel" placeholder="0234-XX-XXXX"></div>
+      <div class="fg"><label>担当者名</label><input class="fi" id="f-contact" placeholder="例: 山田 太郎"></div>
+    </div>
+
+    <div class="section-title"><span></span>点検月（複数選択可）</div>
+    <div id="monthCheckboxes" style="display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem .75rem;margin-bottom:.5rem">
+      <!-- JS で生成 -->
+    </div>
+
+    <div class="section-title"><span></span>点検金額（円・税抜）</div>
+    <div class="amt-grid">
+      <div class="fg"><label>機器点検金額</label>
+        <div class="fi-prefix"><span class="prefix">¥</span><input class="fi" id="f-amtKiki" type="number" min="0" placeholder="0" oninput="calcTotal()"></div>
+      </div>
+      <div class="fg"><label>総合点検金額</label>
+        <div class="fi-prefix"><span class="prefix">¥</span><input class="fi" id="f-amtSogo" type="number" min="0" placeholder="0" oninput="calcTotal()"></div>
+      </div>
+      <div class="fg"><label>防火対象物点検金額</label>
+        <div class="fi-prefix"><span class="prefix">¥</span><input class="fi" id="f-amtBokaTaisho" type="number" min="0" placeholder="0" oninput="calcTotal()"></div>
+      </div>
+      <div class="fg"><label>防火設備点検金額</label>
+        <div class="fi-prefix"><span class="prefix">¥</span><input class="fi" id="f-amtBokaSetsu" type="number" min="0" placeholder="0" oninput="calcTotal()"></div>
+      </div>
+      <div class="amt-total-row">
+        <span>合計金額</span>
+        <span id="amtTotalDisp">¥0</span>
+      </div>
+    </div>
+
+    <div class="section-title"><span></span>支払条件</div>
+    <div class="form-grid">
+      <div class="fg"><label>締め日</label>
+        <select class="fs" id="f-closingDay">
+          <option value="">選択してください</option>
+          <option value="5日">5日</option>
+          <option value="10日">10日</option>
+          <option value="15日">15日</option>
+          <option value="20日">20日</option>
+          <option value="25日">25日</option>
+          <option value="末日">末日</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="fg"><label>支払日</label>
+        <select class="fs" id="f-paymentDay">
+          <option value="">選択してください</option>
+          <option value="翌月5日">翌月5日</option>
+          <option value="翌月10日">翌月10日</option>
+          <option value="翌月15日">翌月15日</option>
+          <option value="翌月20日">翌月20日</option>
+          <option value="翌月25日">翌月25日</option>
+          <option value="翌月末日">翌月末日</option>
+          <option value="翌々月5日">翌々月5日</option>
+          <option value="翌々月10日">翌々月10日</option>
+          <option value="翌々月末日">翌々月末日</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-title"><span></span>メモ・備考</div>
+    <div class="fg"><textarea class="fta" id="f-memo" placeholder="特記事項・備考など"></textarea></div>
+
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveRecord()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>保存
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── IMPORT MODAL ─── -->
+<div class="modal-bg" id="importModal" onclick="if(event.target===this)closeImport()">
+  <div class="modal" style="max-width:750px">
+    <div class="modal-hd">
+      <div class="modal-title">📥 Excel / CSV データ取込</div>
+      <button class="modal-close" onclick="closeImport()">✕</button>
+    </div>
+
+    <div class="import-steps">
+      <div class="step active" id="imp-step1">① ファイル選択</div>
+      <div class="step" id="imp-step2">② 列マッピング</div>
+      <div class="step" id="imp-step3">③ 確認・取込</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="imp-s1">
+      <div class="import-zone" id="dropZone" onclick="document.getElementById('fileIn').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <p>ここをクリック、またはファイルをドラッグ＆ドロップ</p>
+        <small>対応形式：Excel (.xlsx, .xls) / CSV (.csv)</small>
+      </div>
+      <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(this.files[0])">
+
+      <div style="margin-top:1rem;background:var(--accent-l);border:1px solid #c3d3f8;border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#1e40af">
+        <strong>💡 ヒント：</strong>Excelの列名が以下と一致している場合、自動マッピングされます：<br>
+        <code>物件名 / 住所 / 電話番号 / 担当者 / 機器点検金額 / 総合点検金額 / 防火対象物点検金額 / 防火設備点検金額 / 締め日 / 支払日 / 点検月 / メモ</code>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="imp-s2" style="display:none">
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:.75rem">Excelの列を対応するフィールドに割り当ててください。</p>
+      <div class="map-grid" id="mapGrid"></div>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem">
+        <button class="btn btn-outline btn-sm" onclick="backToStep1()">← 戻る</button>
+        <button class="btn btn-primary btn-sm" onclick="goStep3()">次へ →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="imp-s3" style="display:none">
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:.75rem">以下のデータを取り込みます。確認してください。</p>
+      <div class="import-preview table-wrap" id="previewWrap"></div>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1rem">
+        <button class="btn btn-outline btn-sm" onclick="backToStep2()">← 戻る</button>
+        <button class="btn btn-green" onclick="doImport()">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span id="impBtnTxt">取込実行</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING / TOAST -->
+<div class="loading-ov" id="loadingOv"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───
+const GAS_KEY = 'gasUrl_v2';
+let GAS_URL = localStorage.getItem(GAS_KEY) || '';
+
+// ─── STATE ───
+let allData = [], filteredData = [], editingId = null;
+let sortKey = '', sortAsc = true, currentPage = 1;
+const PER_PAGE = 15;
+let autoRefreshTimer = null;
+const AUTO_REFRESH_MIN = 5;
+
+// Import state
+let importRows = [], importHeaders = [], mapping = {};
+
+const FKEYS = ['propertyName','address','phone','contact','amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu','closingDay','paymentDay','memo'];
+
+const FIELDS = [
+  {key:'propertyName', label:'物件名'},
+  {key:'address',      label:'住所'},
+  {key:'phone',        label:'電話番号'},
+  {key:'contact',      label:'担当者名'},
+  {key:'amtKiki',      label:'機器点検金額'},
+  {key:'amtSogo',      label:'総合点検金額'},
+  {key:'amtBokaTaisho',label:'防火対象物点検金額'},
+  {key:'amtBokaSetsu', label:'防火設備点検金額'},
+  {key:'closingDay',   label:'締め日'},
+  {key:'paymentDay',   label:'支払日'},
+  {key:'inspectionMonths', label:'点検月'},
+  {key:'memo',         label:'メモ'},
+];
+const AUTO_MAP = {
+  '物件名':'propertyName','住所':'address','電話番号':'phone','担当者':'contact','担当者名':'contact',
+  '機器点検金額':'amtKiki','総合点検金額':'amtSogo','防火対象物点検金額':'amtBokaTaisho','防火設備点検金額':'amtBokaSetsu',
+  '締め日':'closingDay','支払日':'paymentDay','点検月':'inspectionMonths','メモ':'memo','備考':'memo',
+};
+
+// ─── INIT ───
+window.addEventListener('DOMContentLoaded', () => {
+  if (GAS_URL) {
+    document.getElementById('setupBanner').classList.add('hidden');
+    document.getElementById('gasUrlInput').value = GAS_URL;
+    document.getElementById('disconnectBtn').style.display = '';
+    loadData();
+    startAutoRefresh();
+  } else {
+    setConn('err','URLを設定してください');
+    renderTable();
+  }
+});
+
+function saveGasUrl() {
+  const v = document.getElementById('gasUrlInput').value.trim();
+  if (!v.startsWith('https://')) { showToast('有効なURLを入力してください','err'); return; }
+  GAS_URL = v;
+  localStorage.setItem(GAS_KEY, GAS_URL);
+  document.getElementById('setupBanner').classList.add('hidden');
+  document.getElementById('disconnectBtn').style.display = '';
+  loadData();
+  startAutoRefresh();
+}
+
+function openSettings() {
+  document.getElementById('currentUrlDisp').textContent = GAS_URL;
+  document.getElementById('settingsUrlInput').value = GAS_URL;
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+function updateGasUrl() {
+  const v = document.getElementById('settingsUrlInput').value.trim();
+  if (!v.startsWith('https://')) { showToast('有効なURLを入力してください','err'); return; }
+  GAS_URL = v;
+  localStorage.setItem(GAS_KEY, GAS_URL);
+  closeSettings();
+  showToast('URLを更新しました。再接続します...','info');
+  loadData();
+  startAutoRefresh();
+}
+
+function logout() {
+  if (!confirm('切断（ログアウト）しますか？\nGoogleスプレッドシートのデータは削除されません。')) return;
+  GAS_URL = '';
+  localStorage.removeItem(GAS_KEY);
+  allData = [];
+  filteredData = [];
+  stopAutoRefresh();
+  closeSettings();
+  document.getElementById('setupBanner').classList.remove('hidden');
+  document.getElementById('gasUrlInput').value = '';
+  document.getElementById('disconnectBtn').style.display = 'none';
+  setConn('err', 'URLを設定してください');
+  renderTable();
+  renderStats();
+  showToast('切断しました','info');
+}
+
+// ─── API ───
+async function api(action, body={}) {
+  if (!GAS_URL) throw new Error('GAS URLが未設定です');
+  const res = await fetch(GAS_URL + '?action=' + action, {
+    method:'POST',
+    body: JSON.stringify({action,...body}),
+    headers:{'Content-Type':'text/plain'}
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message || 'エラーが発生しました');
+  return json;
+}
+
+async function loadData() {
+  setConn('load','接続中...');
+  showLoad(true);
+  try {
+    const r = await api('getAll');
+    allData = r.data || [];
+    setConn('ok','接続済み (' + allData.length + '件)');
+    renderTable();
+    renderSummary();
+    renderStats();
+    showToast('データを更新しました','ok');
+  } catch(e) {
+    setConn('err', e.message);
+    showToast('読み込み失敗: ' + e.message,'err');
+    renderTable();
+  } finally { showLoad(false); }
+}
+
+// ─── TABS ───
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-list').style.display = tab==='list'?'block':'none';
+  document.getElementById('tab-summary').style.display = tab==='summary'?'block':'none';
+  if (tab==='summary') renderSummary();
+}
+
+// ─── STATS ───
+function renderStats() {
+  const now = new Date();
+  const thisM = now.getMonth() + 1;
+  const nextM = thisM === 12 ? 1 : thisM + 1;
+  const total = allData.length;
+  const thisMonth = allData.filter(d => getMonths(d).includes(thisM)).length;
+  const nextMonth = allData.filter(d => getMonths(d).includes(nextM)).length;
+  const totalAmtVal = allData.reduce((s,d)=>s+calcTotalAmt(d),0);
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-this-month').textContent = thisMonth;
+  document.getElementById('st-next-month').textContent = nextMonth;
+  document.getElementById('st-total-amt').textContent = totalAmtVal>0?'¥'+totalAmtVal.toLocaleString():'—';
+}
+
+function getMonths(d) {
+  if (!d.inspectionMonths) return [];
+  return String(d.inspectionMonths).split(',').map(m=>parseInt(m.trim())).filter(Boolean);
+}
+
+// ─── TABLE ───
+function calcTotalAmt(d) {
+  return (Number(d.amtKiki)||0)+(Number(d.amtSogo)||0)+(Number(d.amtBokaTaisho)||0)+(Number(d.amtBokaSetsu)||0);
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchQ').value||'').toLowerCase();
+  const mf = document.getElementById('monthFilter').value;
+  filteredData = allData.filter(d=>{
+    const m = !q||[d.propertyName,d.address,d.contact,d.phone,d.memo].some(v=>(v||'').toLowerCase().includes(q));
+    const mfOk = !mf || getMonths(d).includes(parseInt(mf));
+    return m && mfOk;
+  });
+  if (sortKey) {
+    filteredData.sort((a,b)=>{
+      let va=a[sortKey]||'', vb=b[sortKey]||'';
+      if(['amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu'].includes(sortKey)){va=Number(va);vb=Number(vb);}
+      if(va<vb) return sortAsc?-1:1;
+      if(va>vb) return sortAsc?1:-1;
+      return 0;
+    });
+  }
+  currentPage=1;
+  renderPage();
+  renderStats();
+}
+
+function renderPage() {
+  const tbody = document.getElementById('tbody');
+  const start = (currentPage-1)*PER_PAGE;
+  const page = filteredData.slice(start, start+PER_PAGE);
+
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <p>${GAS_URL?'データがありません':'GAS URLを設定してください'}</p>
+    </td></tr>`;
+  } else {
+    tbody.innerHTML = page.map(d=>{
+      const ta = calcTotalAmt(d);
+      const amtHtml = `<div class="amt-mini">
+        ${d.amtKiki?`<div class="amt-row"><span class="amt-lbl">機器</span><span class="amt-num">¥${Number(d.amtKiki).toLocaleString()}</span></div>`:''}
+        ${d.amtSogo?`<div class="amt-row"><span class="amt-lbl">総合</span><span class="amt-num">¥${Number(d.amtSogo).toLocaleString()}</span></div>`:''}
+        ${d.amtBokaTaisho?`<div class="amt-row"><span class="amt-lbl">防火対象</span><span class="amt-num">¥${Number(d.amtBokaTaisho).toLocaleString()}</span></div>`:''}
+        ${d.amtBokaSetsu?`<div class="amt-row"><span class="amt-lbl">防火設備</span><span class="amt-num">¥${Number(d.amtBokaSetsu).toLocaleString()}</span></div>`:''}
+        ${ta?`<div class="amt-total"><span>合計</span><span>¥${ta.toLocaleString()}</span></div>`:'<span style="color:var(--text3);font-size:.78rem">—</span>'}
+      </div>`;
+      const months = getMonths(d);
+      const nowM = new Date().getMonth()+1;
+      const nextM = nowM===12?1:nowM+1;
+      const monthHtml = months.length ? months.map(m=>{
+        let cls = '';
+        if(m===nowM) cls=' soon';
+        else if(m===nextM) cls=' near';
+        return `<span class="month-badge${cls}">${m}月</span>`;
+      }).join(' ') : '—';
+      return `<tr>
+        <td class="td-name">${esc(d.propertyName)}</td>
+        <td class="td-addr" title="${esc(d.address)}">${esc(d.address)||'—'}</td>
+        <td class="td-phone"><a href="tel:${esc(d.phone)}">${esc(d.phone)||'—'}</a></td>
+        <td>${esc(d.contact)||'—'}</td>
+        <td>${amtHtml}</td>
+        <td class="td-mono">${esc(d.closingDay)||'—'}</td>
+        <td class="td-mono">${esc(d.paymentDay)||'—'}</td>
+        <td style="white-space:nowrap">${monthHtml}</td>
+        <td class="td-memo" title="${esc(d.memo)}">${esc(d.memo)||'—'}</td>
+        <td><div class="td-acts">
+          <button class="btn btn-edit-sm btn-sm" onclick="openModal('${d.id}')">編集</button>
+          <button class="btn btn-del-sm btn-sm" onclick="delRecord('${d.id}','${esc(d.propertyName)}')">削除</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  const pages = Math.ceil(filteredData.length/PER_PAGE);
+  document.getElementById('tableInfo').textContent =
+    filteredData.length + '件中 ' + (start+1) + '〜' + Math.min(start+PER_PAGE,filteredData.length) + '件表示';
+  const pb = document.getElementById('pageBtns');
+  pb.innerHTML='';
+  if(pages>1){
+    for(let i=1;i<=pages;i++){
+      const b=document.createElement('button');
+      b.textContent=i;
+      if(i===currentPage)b.classList.add('active');
+      b.onclick=()=>{currentPage=i;renderPage();};
+      pb.appendChild(b);
+    }
+  }
+  renderMobileCards(page);
+}
+
+// ─── MOBILE CARDS ───
+function renderMobileCards(page) {
+  const wrap = document.getElementById('mobileCards');
+  if (!wrap) return;
+  if (!page.length) {
+    wrap.innerHTML = `<div class="m-empty">${GAS_URL ? 'データがありません' : 'GAS URLを設定してください'}</div>`;
+    return;
+  }
+  const nowM = new Date().getMonth() + 1;
+  const nextM = nowM === 12 ? 1 : nowM + 1;
+  wrap.innerHTML = page.map(d => {
+    const ta = calcTotalAmt(d);
+    const months = getMonths(d);
+    const monthHtml = months.length ? months.map(m => {
+      let cls = ''; if(m===nowM) cls=' soon'; else if(m===nextM) cls=' near';
+      return `<span class="month-badge${cls}">${m}月</span>`;
+    }).join('') : '<span style="color:var(--text3);font-size:.78rem">—</span>';
+
+    const amtRows = [
+      ['機器点検', d.amtKiki],
+      ['総合点検', d.amtSogo],
+      ['防火対象物', d.amtBokaTaisho],
+      ['防火設備', d.amtBokaSetsu],
+    ].filter(([,v]) => Number(v) > 0);
+
+    const amtHtml = amtRows.length ? `
+      <div class="m-card-amounts">
+        <div class="m-amt-title">点検金額内訳</div>
+        <div class="m-amt-grid">
+          ${amtRows.map(([l,v]) => `
+            <div class="m-amt-row">
+              <span class="m-amt-lbl">${l}</span>
+              <span class="m-amt-num">${maskAmt('¥'+Number(v).toLocaleString())}</span>
+            </div>`).join('')}
+        </div>
+        ${ta ? `<div class="m-amt-total"><span>合計</span><span>${maskAmt('¥'+ta.toLocaleString())}</span></div>` : ''}
+      </div>` : '';
+
+    return `<div class="m-card">
+      <div class="m-card-header">
+        <div>
+          <div class="m-card-name">${esc(d.propertyName)}</div>
+          <div class="m-card-contact">${esc(d.contact) || '担当者未設定'}</div>
+        </div>
+        <div class="m-card-acts">
+          <button class="btn btn-edit-sm btn-sm" onclick="openModal('${d.id}')">編集</button>
+          <button class="btn btn-del-sm btn-sm" onclick="delRecord('${d.id}','${esc(d.propertyName)}')">削除</button>
+        </div>
+      </div>
+      <div class="m-card-body">
+        ${d.address ? `<div class="m-field" style="grid-column:1/-1">
+          <div class="m-field-label">住所</div>
+          <div class="m-field-value">${esc(d.address)}</div>
+        </div>` : ''}
+        ${d.phone ? `<div class="m-field">
+          <div class="m-field-label">電話番号</div>
+          <div class="m-field-value"><a href="tel:${esc(d.phone)}">${esc(d.phone)}</a></div>
+        </div>` : ''}
+        ${d.closingDay ? `<div class="m-field">
+          <div class="m-field-label">締め日</div>
+          <div class="m-field-value mono">${esc(d.closingDay)}</div>
+        </div>` : ''}
+        ${d.paymentDay ? `<div class="m-field">
+          <div class="m-field-label">支払日</div>
+          <div class="m-field-value mono">${esc(d.paymentDay)}</div>
+        </div>` : ''}
+      </div>
+      ${amtHtml}
+      ${months.length ? `<div class="m-field" style="margin-bottom:.5rem">
+        <div class="m-field-label" style="margin-bottom:.35rem">点検月</div>
+        <div class="m-card-months">${monthHtml}</div>
+      </div>` : ''}
+      ${d.memo ? `<div class="m-memo">📝 ${esc(d.memo)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function renderSummary() {
+  const sb = document.getElementById('summaryBody');
+  const sf = document.getElementById('summaryFoot');
+  if (!allData.length) { sb.innerHTML='<tr><td colspan="10" class="empty-state"><p>データなし</p></td></tr>'; sf.innerHTML=''; return; }
+
+  let totKiki=0,totSogo=0,totBT=0,totBS=0,totAll=0;
+  sb.innerHTML = allData.map(d=>{
+    const k=Number(d.amtKiki)||0, s=Number(d.amtSogo)||0, bt=Number(d.amtBokaTaisho)||0, bs=Number(d.amtBokaSetsu)||0, tot=k+s+bt+bs;
+    totKiki+=k; totSogo+=s; totBT+=bt; totBS+=bs; totAll+=tot;
+    const months = getMonths(d);
+    const nowM = new Date().getMonth()+1;
+    const nextM = nowM===12?1:nowM+1;
+    const monthHtml = months.length ? months.map(m=>{
+      let cls=''; if(m===nowM)cls=' soon'; else if(m===nextM)cls=' near';
+      return `<span class="month-badge${cls}">${m}月</span>`;
+    }).join(' ') : '—';
+    return `<tr>
+      <td class="td-name">${esc(d.propertyName)}</td>
+      <td>${esc(d.contact)||'—'}</td>
+      <td class="td-mono">${k?'¥'+k.toLocaleString():'—'}</td>
+      <td class="td-mono">${s?'¥'+s.toLocaleString():'—'}</td>
+      <td class="td-mono">${bt?'¥'+bt.toLocaleString():'—'}</td>
+      <td class="td-mono">${bs?'¥'+bs.toLocaleString():'—'}</td>
+      <td class="td-mono" style="font-weight:700;color:var(--accent)">${tot?'¥'+tot.toLocaleString():'—'}</td>
+      <td>${esc(d.closingDay)||'—'}</td>
+      <td>${esc(d.paymentDay)||'—'}</td>
+      <td style="white-space:nowrap">${monthHtml}</td>
+    </tr>`;
+  }).join('');
+
+  sf.innerHTML = `<tr style="background:var(--accent);color:#fff;font-weight:700">
+    <td colspan="2" style="padding:.7rem 1rem;font-size:.82rem">合計（${allData.length}件）</td>
+    <td class="td-mono" style="padding:.7rem 1rem">¥${totKiki.toLocaleString()}</td>
+    <td class="td-mono" style="padding:.7rem 1rem">¥${totSogo.toLocaleString()}</td>
+    <td class="td-mono" style="padding:.7rem 1rem">¥${totBT.toLocaleString()}</td>
+    <td class="td-mono" style="padding:.7rem 1rem">¥${totBS.toLocaleString()}</td>
+    <td class="td-mono" style="padding:.7rem 1rem">¥${totAll.toLocaleString()}</td>
+    <td colspan="3" style="padding:.7rem 1rem"></td>
+  </tr>`;
+}
+
+function sortBy(key){
+  if(sortKey===key)sortAsc=!sortAsc; else{sortKey=key;sortAsc=true;}
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
+  const t=document.getElementById('th-'+key);if(t)t.classList.add('sorted');
+  renderTable();
+}
+
+// ─── MODAL ───
+function buildMonthCheckboxes() {
+  const wrap = document.getElementById('monthCheckboxes');
+  wrap.innerHTML = Array.from({length:12},(_,i)=>{
+    const m=i+1;
+    return `<label style="display:flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.83rem;font-weight:500;color:var(--text)">
+      <input type="checkbox" id="mc-${m}" value="${m}" style="width:15px;height:15px;accent-color:var(--accent)"> ${m}月
+    </label>`;
+  }).join('');
+}
+
+function getCheckedMonths() {
+  return Array.from({length:12},(_,i)=>i+1).filter(m=>document.getElementById('mc-'+m)?.checked);
+}
+
+function setCheckedMonths(monthsArr) {
+  for(let m=1;m<=12;m++){
+    const el=document.getElementById('mc-'+m);
+    if(el) el.checked = monthsArr.includes(m);
+  }
+}
+
+function openModal(id=null){
+  editingId=id;
+  buildMonthCheckboxes();
+  document.getElementById('modalTitle').textContent = id?'顧客情報を編集':'新規顧客登録';
+  if(id){
+    const d=allData.find(r=>r.id===id);
+    if(d){
+      FKEYS.forEach(k=>{ const el=document.getElementById('f-'+k); if(el)el.value=d[k]||''; });
+      setCheckedMonths(getMonths(d));
+    }
+  } else {
+    FKEYS.forEach(k=>{ const el=document.getElementById('f-'+k); if(el)el.value=''; });
+    setCheckedMonths([]);
+  }
+  calcTotal();
+  document.getElementById('recModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('recModal').classList.remove('open'); editingId=null; }
+
+function calcTotal(){
+  const t=['f-amtKiki','f-amtSogo','f-amtBokaTaisho','f-amtBokaSetsu'].reduce((s,id)=>s+(Number(document.getElementById(id).value)||0),0);
+  document.getElementById('amtTotalDisp').textContent='¥'+t.toLocaleString();
+}
+
+async function saveRecord(){
+  const data={};
+  FKEYS.forEach(k=>{ const el=document.getElementById('f-'+k); if(el)data[k]=el.value.trim(); });
+  data.inspectionMonths = getCheckedMonths().join(',');
+  if(!data.propertyName){ showToast('物件名は必須です','err'); return; }
+  showLoad(true);
+  try{
+    if(editingId) await api('update',{id:editingId,data});
+    else await api('create',{data});
+    showToast(editingId?'更新しました':'登録しました','ok');
+    closeModal();
+    await loadData();
+  }catch(e){ showToast('保存失敗: '+e.message,'err'); }
+  finally{ showLoad(false); }
+}
+
+async function delRecord(id,name){
+  if(!confirm(`「${name}」を削除しますか？`))return;
+  showLoad(true);
+  try{ await api('delete',{id}); showToast('削除しました','ok'); await loadData(); }
+  catch(e){ showToast('削除失敗: '+e.message,'err'); }
+  finally{ showLoad(false); }
+}
+
+// ─── CSV EXPORT ───
+function exportCSV(){
+  if(!allData.length){ showToast('データがありません','err'); return; }
+  const headers=['物件名','住所','電話番号','担当者名','機器点検金額','総合点検金額','防火対象物点検金額','防火設備点検金額','合計金額','締め日','支払日','点検月','メモ'];
+  const rows = allData.map(d=>[
+    d.propertyName,d.address,d.phone,d.contact,
+    d.amtKiki,d.amtSogo,d.amtBokaTaisho,d.amtBokaSetsu,calcTotalAmt(d),
+    d.closingDay,d.paymentDay,d.inspectionMonths,d.memo
+  ]);
+  const csv = [headers,...rows].map(r=>r.map(v=>'"'+(v||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='顧客データ_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('CSVを出力しました','ok');
+}
+
+// ─── IMPORT ───
+function openImport(){
+  importRows=[]; importHeaders=[]; mapping={};
+  goImpStep(1);
+  document.getElementById('importModal').classList.add('open');
+  document.getElementById('fileIn').value='';
+}
+function closeImport(){ document.getElementById('importModal').classList.remove('open'); }
+
+function goImpStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('imp-s'+i).style.display= i===n?'block':'none';
+    const s=document.getElementById('imp-step'+i);
+    s.classList.toggle('active',i===n);
+  });
+}
+function backToStep1(){ goImpStep(1); }
+function backToStep2(){ goImpStep(2); }
+
+function onDragOver(e){ e.preventDefault(); document.getElementById('dropZone').classList.add('drag'); }
+function onDragLeave(){ document.getElementById('dropZone').classList.remove('drag'); }
+function onDrop(e){ e.preventDefault(); document.getElementById('dropZone').classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f)handleFile(f); }
+
+function handleFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  const reader=new FileReader();
+  reader.onload=e=>{
+    let data;
+    if(ext==='csv'){
+      const text=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
+      const wb=XLSX.read(text,{type:'string'});
+      data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    } else {
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    }
+    if(!data||data.length<2){ showToast('データが見つかりません','err'); return; }
+    importHeaders=data[0].map(String);
+    importRows=data.slice(1).filter(r=>r.some(c=>c!==''&&c!==null&&c!==undefined));
+    buildMapping();
+    goImpStep(2);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function buildMapping(){
+  // Auto-map
+  mapping={};
+  importHeaders.forEach((h,i)=>{ const k=AUTO_MAP[h.trim()]; if(k)mapping[k]=i; });
+
+  const grid=document.getElementById('mapGrid');
+  grid.innerHTML=FIELDS.map(f=>{
+    const opts=importHeaders.map((h,i)=>`<option value="${i}" ${mapping[f.key]===i?'selected':''}>${h}</option>`).join('');
+    return `<div class="map-row">
+      <span style="font-weight:600;color:var(--text)">${f.label}</span>
+      <span class="map-arrow">←</span>
+      <select class="fs" id="map-${f.key}" style="font-size:.82rem">
+        <option value="">（スキップ）</option>
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function goStep3(){
+  FIELDS.forEach(f=>{
+    const el=document.getElementById('map-'+f.key);
+    mapping[f.key]= el.value!==''?Number(el.value):undefined;
+  });
+  if(mapping.propertyName===undefined){ showToast('物件名の列を選択してください','err'); return; }
+
+  const preview=importRows.slice(0,10).map(row=>{
+    const d={};
+    FIELDS.forEach(f=>{ if(mapping[f.key]!==undefined) d[f.label]=row[mapping[f.key]]||''; });
+    return d;
+  });
+  const cols=Object.keys(preview[0]||{});
+  const html=`<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>
+    ${preview.map(r=>`<tr>${cols.map(c=>`<td>${esc(String(r[c]||''))}</td>`).join('')}</tr>`).join('')}
+  </tbody></table>`;
+  document.getElementById('previewWrap').innerHTML=html;
+  document.getElementById('impBtnTxt').textContent='取込実行（'+importRows.length+'件）';
+  goImpStep(3);
+}
+
+async function doImport(){
+  if(!GAS_URL){ showToast('GAS URLが未設定です','err'); return; }
+  const rows=importRows.map(row=>{
+    const d={};
+    FIELDS.forEach(f=>{ if(mapping[f.key]!==undefined){ d[f.key]=String(row[mapping[f.key]]||'').trim(); } });
+    return d;
+  }).filter(d=>d.propertyName);
+
+  if(!rows.length){ showToast('有効なデータがありません','err'); return; }
+  showLoad(true);
+  try{
+    await api('bulkCreate',{rows});
+    showToast(rows.length+'件を取り込みました','ok');
+    closeImport();
+    await loadData();
+  }catch(e){ showToast('取込失敗: '+e.message,'err'); }
+  finally{ showLoad(false); }
+}
+
+// ─── HELPERS ───
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── PRIVACY MODE ───
+let privacyMode = false;
+
+function togglePrivacy() {
+  privacyMode = !privacyMode;
+  const btn = document.getElementById('privacyBtn');
+  if (privacyMode) {
+    btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> 金額を表示`;
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+    btn.style.borderColor = 'var(--accent)';
+    showToast('金額を非表示にしました', 'info');
+  } else {
+    btn.innerHTML = `<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> 金額を隠す`;
+    btn.style.background = '';
+    btn.style.color = '';
+    btn.style.borderColor = '';
+    showToast('金額を表示しました', 'info');
+  }
+  const start = (currentPage-1)*PER_PAGE;
+  renderMobileCards(filteredData.slice(start, start+PER_PAGE));
+}
+
+function maskAmt(val) {
+  if (!privacyMode) return val;
+  return `<span class="amount-mask">¥¥¥¥¥</span>`;
+}
+let countdownTimer = null;
+let secondsLeft = 0;
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  secondsLeft = AUTO_REFRESH_MIN * 60;
+  updateCountdown();
+  countdownTimer = setInterval(() => {
+    secondsLeft--;
+    updateCountdown();
+    if (secondsLeft <= 0) {
+      secondsLeft = AUTO_REFRESH_MIN * 60;
+      silentRefresh();
+    }
+  }, 1000);
+}
+
+function stopAutoRefresh() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  const el = document.getElementById('countdownBadge');
+  if (el) el.style.display = 'none';
+}
+
+function updateCountdown() {
+  const el = document.getElementById('countdownBadge');
+  if (!el) return;
+  el.style.display = '';
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  document.getElementById('countdownTxt').textContent =
+    `次回自動更新 ${m}:${String(s).padStart(2,'0')}`;
+}
+
+async function silentRefresh() {
+  if (!GAS_URL) return;
+  try {
+    const r = await api('getAll');
+    allData = r.data || [];
+    setConn('ok','接続済み (' + allData.length + '件)');
+    renderTable();
+    renderSummary();
+    renderStats();
+    showToast('自動更新しました','info');
+  } catch(e) {
+    setConn('err', e.message);
+  }
+}
+
+function setConn(state,txt){
+  const b=document.getElementById('connBadge');
+  b.className='conn-badge '+(state==='ok'?'conn-ok':state==='err'?'conn-err':'conn-load');
+  document.getElementById('connTxt').textContent=txt;
+}
+
+function showLoad(v){ document.getElementById('loadingOv').classList.toggle('show',v); }
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3200);
+}
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検物件 顧客管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <style>
 :root {
   --bg:#f0f2f5;--white:#fff;--surface:#fff;--border:#e2e6ed;--border2:#c8cdd8;
@@ -290,24 +290,6 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 </head>
 <body>
 
-<!-- PASSWORD SCREEN -->
-<div id="pwScreen" style="position:fixed;inset:0;background:linear-gradient(135deg,#1a56db 0%,#1e3a8a 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1.5rem;">
-  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center">
-    <div style="width:52px;height:52px;background:#1a56db;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-    </div>
-    <div style="font-size:1.1rem;font-weight:700;margin-bottom:.35rem">点検物件 顧客管理システム</div>
-    <div style="font-size:.82rem;color:#6b7280;margin-bottom:1.5rem">パスワードを入力してください</div>
-    <input id="pwInput" type="password" placeholder="パスワード"
-      style="width:100%;padding:.7rem 1rem;border:2px solid #e2e6ed;border-radius:8px;font-size:1.1rem;outline:none;text-align:center;letter-spacing:.3em;margin-bottom:.5rem;font-family:'DM Mono',monospace;display:block">
-    <div id="pwError" style="display:none;color:#c81e1e;font-size:.78rem;margin-bottom:.5rem">パスワードが違います</div>
-    <button id="pwBtn" type="button" style="width:100%;padding:.75rem;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif">
-      ログイン
-    </button>
-    <div style="font-size:.72rem;color:#9ca3af;margin-top:1rem">※パスワードはHTMLファイル内で変更できます</div>
-  </div>
-</div>
-
 <!-- HEADER -->
 <header>
   <div class="logo">
@@ -419,7 +401,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新規登録
       </button>
       <button class="btn btn-green" onclick="openImport()">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Excel/CSV取込
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>CSV取込
       </button>
       <button class="btn btn-outline btn-sm privacy-btn" id="privacyBtn" onclick="togglePrivacy()">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -598,9 +580,9 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
       <div class="import-zone" id="dropZone" onclick="document.getElementById('fileIn').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <p>ここをクリック、またはファイルをドラッグ＆ドロップ</p>
-        <small>対応形式：Excel (.xlsx, .xls) / CSV (.csv)</small>
+        <small>対応形式：CSV (.csv)</small>
       </div>
-      <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFile(this.files[0])">
+      <input type="file" id="fileIn" accept=".csv" style="display:none" onchange="handleFile(this.files[0])">
 
       <div style="margin-top:1rem;background:var(--accent-l);border:1px solid #c3d3f8;border-radius:8px;padding:.9rem 1rem;font-size:.8rem;color:#1e40af">
         <strong>💡 ヒント：</strong>Excelの列名が以下と一致している場合、自動マッピングされます：<br>
@@ -638,86 +620,53 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── PASSWORD AUTH ───
-const PASSWORD = '0119'; // ← ここを変更してください
-const PW_KEY = 'pw_auth_v1';
-
-function checkPassword() {
-  const input = document.getElementById('pwInput').value;
-  if (input === PASSWORD) {
-    sessionStorage.setItem(PW_KEY, '1');
-    document.getElementById('pwScreen').style.display = 'none';
-    initApp();
-  } else {
-    document.getElementById('pwError').style.display = 'block';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').style.border = '2px solid #c81e1e';
-    setTimeout(() => {
-      document.getElementById('pwInput').style.border = '2px solid #e2e6ed';
-    }, 1500);
-    document.getElementById('pwInput').focus();
-  }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  // ボタンとEnterキーのイベントをここで登録
-  document.getElementById('pwBtn').addEventListener('click', checkPassword);
-  document.getElementById('pwInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') checkPassword();
-  });
-  document.getElementById('pwInput').addEventListener('input', () => {
-    document.getElementById('pwError').style.display = 'none';
-  });
-
-  // 認証済みならそのままアプリ起動
-  if (sessionStorage.getItem(PW_KEY) === '1') {
-    document.getElementById('pwScreen').style.display = 'none';
-    initApp();
-  } else {
-    document.getElementById('pwInput').focus();
-  }
-});
-
-// ─── CONFIG ───
-const GAS_KEY = 'gasUrl_v2';
-let GAS_URL = localStorage.getItem(GAS_KEY) || '';
-
-// ─── STATE ───
+// ─── CONFIG & STATE ───
+const GAS_KEY  = 'gasUrl_v2';
+let GAS_URL    = localStorage.getItem(GAS_KEY) || '';
 let allData = [], filteredData = [], editingId = null;
 let sortKey = '', sortAsc = true, currentPage = 1;
 const PER_PAGE = 20;
 let autoRefreshTimer = null;
 const AUTO_REFRESH_MIN = 5;
-
-// Import state
 let importRows = [], importHeaders = [], mapping = {};
 
 const FKEYS = ['manageNo','propertyName','address','phone','contact','amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu','closingDay','paymentDay','memo'];
-
 const FIELDS = [
-  {key:'manageNo',     label:'管理№'},
-  {key:'propertyName', label:'物件名'},
-  {key:'address',      label:'住所'},
-  {key:'phone',        label:'電話番号'},
-  {key:'contact',      label:'担当者名'},
-  {key:'amtKiki',      label:'機器点検金額'},
-  {key:'amtSogo',      label:'総合点検金額'},
-  {key:'amtBokaTaisho',label:'防火対象物点検金額'},
-  {key:'amtBokaSetsu', label:'防火設備点検金額'},
-  {key:'closingDay',   label:'締め日'},
-  {key:'paymentDay',   label:'支払日'},
+  {key:'manageNo',      label:'管理No'},
+  {key:'propertyName',  label:'物件名'},
+  {key:'address',       label:'住所'},
+  {key:'phone',         label:'電話番号'},
+  {key:'contact',       label:'担当者名'},
+  {key:'amtKiki',       label:'機器点検金額'},
+  {key:'amtSogo',       label:'総合点検金額'},
+  {key:'amtBokaTaisho', label:'防火対象物点検金額'},
+  {key:'amtBokaSetsu',  label:'防火設備点検金額'},
+  {key:'closingDay',    label:'締め日'},
+  {key:'paymentDay',    label:'支払日'},
   {key:'inspectionMonths', label:'点検月'},
-  {key:'memo',         label:'メモ'},
+  {key:'memo',          label:'メモ'}
 ];
 const AUTO_MAP = {
-  '管理№':'manageNo','管理番号':'manageNo','管理No':'manageNo',
-  '物件名':'propertyName','住所':'address','電話番号':'phone','担当者':'contact','担当者名':'contact',
-  '機器点検金額':'amtKiki','総合点検金額':'amtSogo','防火対象物点検金額':'amtBokaTaisho','防火設備点検金額':'amtBokaSetsu',
-  '締め日':'closingDay','支払日':'paymentDay','点検月':'inspectionMonths','メモ':'memo','備考':'memo',
+  '管理No':'manageNo',
+  '管理番号':'manageNo',
+  '物件名':'propertyName',
+  '住所':'address',
+  '電話番号':'phone',
+  '担当者':'contact',
+  '担当者名':'contact',
+  '機器点検金額':'amtKiki',
+  '総合点検金額':'amtSogo',
+  '防火対象物点検金額':'amtBokaTaisho',
+  '防火設備点検金額':'amtBokaSetsu',
+  '締め日':'closingDay',
+  '支払日':'paymentDay',
+  '点検月':'inspectionMonths',
+  'メモ':'memo',
+  '備考':'memo'
 };
 
 // ─── INIT ───
-function initApp() {
+window.onload = function() {
   if (GAS_URL) {
     document.getElementById('setupBanner').classList.add('hidden');
     document.getElementById('gasUrlInput').value = GAS_URL;
@@ -728,19 +677,8 @@ function initApp() {
     setConn('err','URLを設定してください');
     renderTable();
   }
-}
-
-
-function saveGasUrl() {
-  const v = document.getElementById('gasUrlInput').value.trim();
-  if (!v.startsWith('https://')) { showToast('有効なURLを入力してください','err'); return; }
-  GAS_URL = v;
-  localStorage.setItem(GAS_KEY, GAS_URL);
-  document.getElementById('setupBanner').classList.add('hidden');
-  document.getElementById('disconnectBtn').style.display = '';
-  loadData();
-  startAutoRefresh();
-}
+};
+// ─── GAS URL FUNCTIONS ───
 function openSettings() {
   document.getElementById('currentUrlDisp').textContent = GAS_URL;
   document.getElementById('settingsUrlInput').value = GAS_URL;
@@ -748,6 +686,17 @@ function openSettings() {
 }
 function closeSettings() {
   document.getElementById('settingsModal').classList.remove('open');
+}
+
+function saveGasUrl() {
+  var v = document.getElementById('gasUrlInput').value.trim();
+  if (!v.startsWith('https://')) { showToast('有効なURLを入力してください','err'); return; }
+  GAS_URL = v;
+  localStorage.setItem(GAS_KEY, GAS_URL);
+  document.getElementById('setupBanner').classList.add('hidden');
+  document.getElementById('disconnectBtn').style.display = '';
+  loadData();
+  startAutoRefresh();
 }
 
 function updateGasUrl() {
@@ -1152,6 +1101,8 @@ async function deleteAllRecords() {
     showLoad(false);
   }
 }
+
+async function delRecord(id,name){
   if(!confirm(`「${name}」を削除しますか？`))return;
   showLoad(true);
   try{ await api('delete',{id}); showToast('削除しました','ok'); await loadData(); }
@@ -1202,24 +1153,32 @@ function onDrop(e){ e.preventDefault(); document.getElementById('dropZone').clas
 function handleFile(file){
   if(!file)return;
   const ext=file.name.split('.').pop().toLowerCase();
+  if(ext!=='csv'){ showToast('CSVファイル(.csv)のみ対応しています','err'); return; }
   const reader=new FileReader();
   reader.onload=e=>{
-    let data;
-    if(ext==='csv'){
-      const text=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
-      const wb=XLSX.read(text,{type:'string'});
-      data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
-    } else {
-      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
-    }
-    if(!data||data.length<2){ showToast('データが見つかりません','err'); return; }
-    importHeaders=data[0].map(String);
-    importRows=data.slice(1).filter(r=>r.some(c=>c!==''&&c!==null&&c!==undefined));
-    buildMapping();
-    goImpStep(2);
+    try{
+      const text=e.target.result;
+      const lines=text.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length<2){ showToast('データが見つかりません','err'); return; }
+      const parseRow=row=>{
+        const result=[];let cur='';let inQ=false;
+        for(let i=0;i<row.length;i++){
+          const c=row[i];
+          if(c==='"'&&!inQ){inQ=true;}
+          else if(c==='"'&&inQ){if(row[i+1]==='"'){cur+='"';i++;}else inQ=false;}
+          else if(c===','&&!inQ){result.push(cur);cur='';}
+          else cur+=c;
+        }
+        result.push(cur);
+        return result.map(v=>v.trim());
+      };
+      importHeaders=parseRow(lines[0]);
+      importRows=lines.slice(1).map(parseRow).filter(r=>r.some(c=>c!==''));
+      buildMapping();
+      goImpStep(2);
+    }catch(err){showToast('読み込み失敗: '+err.message,'err');}
   };
-  reader.readAsArrayBuffer(file);
+  reader.readAsText(file,'UTF-8');
 }
 
 function buildMapping(){

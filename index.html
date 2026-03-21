@@ -1,4 +1,4 @@
-A<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -291,42 +291,20 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 <body>
 
 <!-- PASSWORD SCREEN -->
-<div id="pwScreen" style="
-  position:fixed;inset:0;background:linear-gradient(135deg,#1a56db 0%,#1e3a8a 100%);
-  display:flex;align-items:center;justify-content:center;z-index:9999;padding:1.5rem;
-">
-  <div style="
-    background:#fff;border-radius:16px;padding:2rem 2rem 1.75rem;
-    width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);
-    text-align:center;animation:fadeUp .3s ease;
-  ">
-    <div style="width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-      </svg>
+<div id="pwScreen" style="position:fixed;inset:0;background:linear-gradient(135deg,#1a56db 0%,#1e3a8a 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1.5rem;">
+  <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center">
+    <div style="width:52px;height:52px;background:#1a56db;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
     </div>
     <div style="font-size:1.1rem;font-weight:700;margin-bottom:.35rem">点検物件 顧客管理システム</div>
-    <div style="font-size:.82rem;color:var(--text2);margin-bottom:1.5rem">パスワードを入力してください</div>
+    <div style="font-size:.82rem;color:#6b7280;margin-bottom:1.5rem">パスワードを入力してください</div>
     <input id="pwInput" type="password" placeholder="パスワード"
-      style="width:100%;padding:.7rem 1rem;border:1px solid var(--border2);border-radius:8px;
-      font-size:1rem;outline:none;text-align:center;letter-spacing:.2em;margin-bottom:.75rem;
-      font-family:'DM Mono',monospace;transition:border-color .15s"
-      onkeydown="if(event.key==='Enter')checkPassword()"
-      oninput="document.getElementById('pwError').style.display='none'"
-    >
-    <div id="pwError" style="display:none;color:var(--red);font-size:.78rem;margin-bottom:.6rem">
-      パスワードが違います
-    </div>
-    <button onclick="checkPassword()" style="
-      width:100%;padding:.7rem;background:var(--accent);color:#fff;border:none;
-      border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;
-      font-family:'Noto Sans JP',sans-serif;transition:background .15s;
-    " onmouseover="this.style.background='var(--accent-h)'" onmouseout="this.style.background='var(--accent)'">
+      style="width:100%;padding:.7rem 1rem;border:2px solid #e2e6ed;border-radius:8px;font-size:1.1rem;outline:none;text-align:center;letter-spacing:.3em;margin-bottom:.5rem;font-family:'DM Mono',monospace;display:block">
+    <div id="pwError" style="display:none;color:#c81e1e;font-size:.78rem;margin-bottom:.5rem">パスワードが違います</div>
+    <button id="pwBtn" type="button" style="width:100%;padding:.75rem;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif">
       ログイン
     </button>
-    <div style="font-size:.72rem;color:var(--text3);margin-top:1rem">
-      ※パスワードはHTMLファイル内で変更できます
-    </div>
+    <div style="font-size:.72rem;color:#9ca3af;margin-top:1rem">※パスワードはHTMLファイル内で変更できます</div>
   </div>
 </div>
 
@@ -669,18 +647,36 @@ function checkPassword() {
   if (input === PASSWORD) {
     sessionStorage.setItem(PW_KEY, '1');
     document.getElementById('pwScreen').style.display = 'none';
-    // 認証後にアプリ初期化
     initApp();
   } else {
     document.getElementById('pwError').style.display = 'block';
     document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').focus();
-    document.getElementById('pwInput').style.borderColor = 'var(--red)';
+    document.getElementById('pwInput').style.border = '2px solid #c81e1e';
     setTimeout(() => {
-      document.getElementById('pwInput').style.borderColor = '';
+      document.getElementById('pwInput').style.border = '2px solid #e2e6ed';
     }, 1500);
+    document.getElementById('pwInput').focus();
   }
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  // ボタンとEnterキーのイベントをここで登録
+  document.getElementById('pwBtn').addEventListener('click', checkPassword);
+  document.getElementById('pwInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') checkPassword();
+  });
+  document.getElementById('pwInput').addEventListener('input', () => {
+    document.getElementById('pwError').style.display = 'none';
+  });
+
+  // 認証済みならそのままアプリ起動
+  if (sessionStorage.getItem(PW_KEY) === '1') {
+    document.getElementById('pwScreen').style.display = 'none';
+    initApp();
+  } else {
+    document.getElementById('pwInput').focus();
+  }
+});
 
 // ─── CONFIG ───
 const GAS_KEY = 'gasUrl_v2';
@@ -734,19 +730,6 @@ function initApp() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  // 認証済みならそのままアプリ起動
-  if (sessionStorage.getItem(PW_KEY) === '1') {
-    document.getElementById('pwScreen').style.display = 'none';
-    initApp();
-  } else {
-    // パスワード画面を表示してフォーカス
-    setTimeout(() => {
-      const el = document.getElementById('pwInput');
-      if (el) el.focus();
-    }, 200);
-  }
-});
 
 function saveGasUrl() {
   const v = document.getElementById('gasUrlInput').value.trim();
@@ -1394,3 +1377,4 @@ function showToast(msg,type=''){
 </script>
 </body>
 </html>
+

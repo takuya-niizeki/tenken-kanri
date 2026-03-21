@@ -450,6 +450,9 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
       <button class="btn btn-outline" onclick="exportCSV()">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV出力
       </button>
+      <button class="btn btn-sm" onclick="deleteAllRecords()" style="background:#fff;border:1px solid var(--red);color:var(--red);white-space:nowrap">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>全件消去
+      </button>
     </div>
 
     <!-- TABLE -->
@@ -692,7 +695,7 @@ let GAS_URL = localStorage.getItem(GAS_KEY) || '';
 // ─── STATE ───
 let allData = [], filteredData = [], editingId = null;
 let sortKey = '', sortAsc = true, currentPage = 1;
-const PER_PAGE = 15;
+const PER_PAGE = 20;
 let autoRefreshTimer = null;
 const AUTO_REFRESH_MIN = 5;
 
@@ -854,7 +857,7 @@ function renderTable() {
   const q = (document.getElementById('searchQ').value||'').toLowerCase();
   const mf = document.getElementById('monthFilter').value;
   filteredData = allData.filter(d=>{
-    const m = !q||[d.propertyName,d.address,d.contact,d.phone,d.memo].some(v=>(v||'').toLowerCase().includes(q));
+    const m = !q||[d.manageNo,d.propertyName,d.address,d.contact,d.phone,d.memo].some(v=>(v||'').toLowerCase().includes(q));
     const mfOk = !mf || getMonths(d).includes(parseInt(mf));
     return m && mfOk;
   });
@@ -922,17 +925,37 @@ function renderPage() {
 
   const pages = Math.ceil(filteredData.length/PER_PAGE);
   document.getElementById('tableInfo').textContent =
-    filteredData.length + '件中 ' + (start+1) + '〜' + Math.min(start+PER_PAGE,filteredData.length) + '件表示';
+    filteredData.length + '件中 ' + (Math.min(start+1,filteredData.length)) + '〜' + Math.min(start+PER_PAGE,filteredData.length) + '件表示';
+
   const pb = document.getElementById('pageBtns');
-  pb.innerHTML='';
-  if(pages>1){
-    for(let i=1;i<=pages;i++){
-      const b=document.createElement('button');
-      b.textContent=i;
-      if(i===currentPage)b.classList.add('active');
-      b.onclick=()=>{currentPage=i;renderPage();};
-      pb.appendChild(b);
+  pb.innerHTML = '';
+  if (pages > 1) {
+    // 前へボタン
+    const prev = document.createElement('button');
+    prev.innerHTML = '&#8592;';
+    prev.disabled = currentPage === 1;
+    prev.onclick = () => { currentPage--; renderPage(); };
+    pb.appendChild(prev);
+
+    // ページ番号セレクト
+    const sel = document.createElement('select');
+    sel.style.cssText = 'border:1px solid var(--border2);border-radius:6px;padding:0 .4rem;height:30px;font-size:.78rem;color:var(--text);background:#fff;cursor:pointer;outline:none;max-width:90px';
+    for (let i = 1; i <= pages; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i + ' / ' + pages + 'ページ';
+      if (i === currentPage) opt.selected = true;
+      sel.appendChild(opt);
     }
+    sel.onchange = () => { currentPage = parseInt(sel.value); renderPage(); };
+    pb.appendChild(sel);
+
+    // 次へボタン
+    const next = document.createElement('button');
+    next.innerHTML = '&#8594;';
+    next.disabled = currentPage === pages;
+    next.onclick = () => { currentPage++; renderPage(); };
+    pb.appendChild(next);
   }
   renderMobileCards(page);
 }
@@ -1124,7 +1147,21 @@ async function saveRecord(){
   finally{ showLoad(false); }
 }
 
-async function delRecord(id,name){
+async function deleteAllRecords() {
+  if (!allData.length) { showToast('削除するデータがありません', 'err'); return; }
+  const input = prompt(`⚠️ 全件削除の確認\n\n現在 ${allData.length} 件のデータがあります。\n全て削除するには「全件削除」と入力してください。`);
+  if (input !== '全件削除') { showToast('キャンセルしました', 'info'); return; }
+  showLoad(true);
+  try {
+    await api('deleteAll', {});
+    showToast(`${allData.length}件のデータを削除しました`, 'ok');
+    await loadData();
+  } catch(e) {
+    showToast('削除失敗: ' + e.message, 'err');
+  } finally {
+    showLoad(false);
+  }
+}
   if(!confirm(`「${name}」を削除しますか？`))return;
   showLoad(true);
   try{ await api('delete',{id}); showToast('削除しました','ok'); await loadData(); }

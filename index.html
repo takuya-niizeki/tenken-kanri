@@ -458,6 +458,8 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
         <table>
           <thead>
             <tr>
+              <th onclick="sortBy('managementNo')" id="th-managementNo">管理№ ↕</th>
+              <th onclick="sortBy('manageNo')" id="th-manageNo">管理№ ↕</th>
               <th onclick="sortBy('propertyName')" id="th-propertyName">物件名 ↕</th>
               <th onclick="sortBy('address')" id="th-address">住所 ↕</th>
               <th>電話番号</th>
@@ -489,6 +491,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
         <table>
           <thead>
             <tr>
+              <th>管理№</th>
               <th>物件名</th>
               <th>担当者</th>
               <th class="td-mono">機器点検</th>
@@ -520,7 +523,8 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
     <div class="section-title"><span></span>基本情報</div>
     <div class="form-grid">
-      <div class="fg full"><label>物件名 *</label><input class="fi" id="f-propertyName" placeholder="例: ○○ビル 3F"></div>
+      <div class="fg"><label>管理№</label><input class="fi" id="f-manageNo" placeholder="例: あー１"></div>
+      <div class="fg"><label>物件名 *</label><input class="fi" id="f-propertyName" placeholder="例: ○○ビル 3F"></div>
       <div class="fg full"><label>住所</label><input class="fi" id="f-address" placeholder="例: 山形県酒田市○○1-2-3"></div>
       <div class="fg"><label>電話番号</label><input class="fi" id="f-phone" type="tel" placeholder="0234-XX-XXXX"></div>
       <div class="fg"><label>担当者名</label><input class="fi" id="f-contact" placeholder="例: 山田 太郎"></div>
@@ -695,9 +699,10 @@ const AUTO_REFRESH_MIN = 5;
 // Import state
 let importRows = [], importHeaders = [], mapping = {};
 
-const FKEYS = ['propertyName','address','phone','contact','amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu','closingDay','paymentDay','memo'];
+const FKEYS = ['manageNo','propertyName','address','phone','contact','amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu','closingDay','paymentDay','memo'];
 
 const FIELDS = [
+  {key:'manageNo',     label:'管理№'},
   {key:'propertyName', label:'物件名'},
   {key:'address',      label:'住所'},
   {key:'phone',        label:'電話番号'},
@@ -712,6 +717,7 @@ const FIELDS = [
   {key:'memo',         label:'メモ'},
 ];
 const AUTO_MAP = {
+  '管理№':'manageNo','管理番号':'manageNo','管理No':'manageNo',
   '物件名':'propertyName','住所':'address','電話番号':'phone','担当者':'contact','担当者名':'contact',
   '機器点検金額':'amtKiki','総合点検金額':'amtSogo','防火対象物点検金額':'amtBokaTaisho','防火設備点検金額':'amtBokaSetsu',
   '締め日':'closingDay','支払日':'paymentDay','点検月':'inspectionMonths','メモ':'memo','備考':'memo',
@@ -872,7 +878,7 @@ function renderPage() {
   const page = filteredData.slice(start, start+PER_PAGE);
 
   if (!page.length) {
-    tbody.innerHTML = `<tr><td colspan="10" class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="11" class="empty-state">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       <p>${GAS_URL?'データがありません':'GAS URLを設定してください'}</p>
     </td></tr>`;
@@ -896,6 +902,7 @@ function renderPage() {
         return `<span class="month-badge${cls}">${m}月</span>`;
       }).join(' ') : '—';
       return `<tr>
+        <td class="td-mono" style="color:var(--accent);font-weight:600">${esc(d.manageNo)||'—'}</td>
         <td class="td-name">${esc(d.propertyName)}</td>
         <td class="td-addr" title="${esc(d.address)}">${esc(d.address)||'—'}</td>
         <td class="td-phone"><a href="tel:${esc(d.phone)}">${esc(d.phone)||'—'}</a></td>
@@ -971,7 +978,7 @@ function renderMobileCards(page) {
     return `<div class="m-card">
       <div class="m-card-header">
         <div>
-          <div class="m-card-name">${esc(d.propertyName)}</div>
+          <div class="m-card-name">${d.manageNo ? `<span style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--accent);font-weight:600;margin-right:.4rem">${esc(d.manageNo)}</span>` : ''}${esc(d.propertyName)}</div>
           <div class="m-card-contact">${esc(d.contact) || '担当者未設定'}</div>
         </div>
         <div class="m-card-acts">
@@ -1023,6 +1030,7 @@ function renderSummary() {
       return `<span class="month-badge${cls}">${m}月</span>`;
     }).join(' ') : '—';
     return `<tr>
+      <td class="td-mono" style="color:var(--accent);font-weight:600">${esc(d.manageNo)||'—'}</td>
       <td class="td-name">${esc(d.propertyName)}</td>
       <td>${esc(d.contact)||'—'}</td>
       <td class="td-mono">${k?'¥'+k.toLocaleString():'—'}</td>
@@ -1037,7 +1045,7 @@ function renderSummary() {
   }).join('');
 
   sf.innerHTML = `<tr style="background:var(--accent);color:#fff;font-weight:700">
-    <td colspan="2" style="padding:.7rem 1rem;font-size:.82rem">合計（${allData.length}件）</td>
+    <td colspan="3" style="padding:.7rem 1rem;font-size:.82rem">合計（${allData.length}件）</td>
     <td class="td-mono" style="padding:.7rem 1rem">¥${totKiki.toLocaleString()}</td>
     <td class="td-mono" style="padding:.7rem 1rem">¥${totSogo.toLocaleString()}</td>
     <td class="td-mono" style="padding:.7rem 1rem">¥${totBT.toLocaleString()}</td>
@@ -1127,9 +1135,9 @@ async function delRecord(id,name){
 // ─── CSV EXPORT ───
 function exportCSV(){
   if(!allData.length){ showToast('データがありません','err'); return; }
-  const headers=['物件名','住所','電話番号','担当者名','機器点検金額','総合点検金額','防火対象物点検金額','防火設備点検金額','合計金額','締め日','支払日','点検月','メモ'];
+  const headers=['管理番号','物件名','住所','電話番号','担当者名','機器点検金額','総合点検金額','防火対象物点検金額','防火設備点検金額','合計金額','締め日','支払日','点検月','メモ'];
   const rows = allData.map(d=>[
-    d.propertyName,d.address,d.phone,d.contact,
+    d.manageNo,d.propertyName,d.address,d.phone,d.contact,
     d.amtKiki,d.amtSogo,d.amtBokaTaisho,d.amtBokaSetsu,calcTotalAmt(d),
     d.closingDay,d.paymentDay,d.inspectionMonths,d.memo
   ]);

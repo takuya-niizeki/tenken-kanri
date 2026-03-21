@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+A<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -669,7 +669,8 @@ function checkPassword() {
   if (input === PASSWORD) {
     sessionStorage.setItem(PW_KEY, '1');
     document.getElementById('pwScreen').style.display = 'none';
-    document.getElementById('pwInput').value = '';
+    // 認証後にアプリ初期化
+    initApp();
   } else {
     document.getElementById('pwError').style.display = 'block';
     document.getElementById('pwInput').value = '';
@@ -679,13 +680,6 @@ function checkPassword() {
       document.getElementById('pwInput').style.borderColor = '';
     }, 1500);
   }
-}
-
-// 認証チェック（セッション中は再入力不要）
-if (sessionStorage.getItem(PW_KEY) === '1') {
-  document.getElementById('pwScreen').style.display = 'none';
-} else {
-  setTimeout(() => document.getElementById('pwInput').focus(), 300);
 }
 
 // ─── CONFIG ───
@@ -727,7 +721,7 @@ const AUTO_MAP = {
 };
 
 // ─── INIT ───
-window.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   if (GAS_URL) {
     document.getElementById('setupBanner').classList.add('hidden');
     document.getElementById('gasUrlInput').value = GAS_URL;
@@ -737,6 +731,20 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     setConn('err','URLを設定してください');
     renderTable();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  // 認証済みならそのままアプリ起動
+  if (sessionStorage.getItem(PW_KEY) === '1') {
+    document.getElementById('pwScreen').style.display = 'none';
+    initApp();
+  } else {
+    // パスワード画面を表示してフォーカス
+    setTimeout(() => {
+      const el = document.getElementById('pwInput');
+      if (el) el.focus();
+    }, 200);
   }
 });
 
@@ -750,7 +758,6 @@ function saveGasUrl() {
   loadData();
   startAutoRefresh();
 }
-
 function openSettings() {
   document.getElementById('currentUrlDisp').textContent = GAS_URL;
   document.getElementById('settingsUrlInput').value = GAS_URL;

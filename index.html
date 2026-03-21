@@ -847,7 +847,7 @@ function renderTable() {
   const mf = document.getElementById('monthFilter').value;
   filteredData = allData.filter(d=>{
     const searchTarget = [d.manageNo,d.propertyName,d.address,d.contact,d.phone,d.memo,d.closingDay,d.paymentDay]
-      .map(v=>(v||'').toLowerCase()).join(' ');
+      .map(v=>String(v==null?'':v).toLowerCase()).join(' ');
     const m = keywords.length===0 || keywords.every(kw=>searchTarget.includes(kw));
     const mfOk = !mf || getMonths(d).includes(parseInt(mf));
     return m && mfOk;

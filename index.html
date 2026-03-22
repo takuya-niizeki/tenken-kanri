@@ -189,6 +189,8 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .empty-state svg{width:44px;height:44px;margin:0 auto .75rem;display:block;opacity:.3}
 
 /* ─── MOBILE REDESIGN ─── */
+/* search field responsive */
+.toolbar .search-wrap{min-width:120px}
 @media(max-width:640px){
   .main{padding:.75rem}
   .form-grid,.amt-grid{grid-template-columns:1fr}
@@ -566,9 +568,24 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
     <!-- TOOLBAR -->
     <div class="toolbar">
-      <div class="search-wrap">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="search-input" id="searchQ" placeholder="スペース区切りで複数検索（例: 山田 酒田）" oninput="renderTable()">
+      <div style="display:flex;gap:.4rem;width:100%;flex-wrap:wrap;align-items:center">
+        <select class="f-sel" id="searchField" onchange="renderTable()" style="flex-shrink:0">
+          <option value="all">🔍 全項目</option>
+          <option value="manageNo">管理No</option>
+          <option value="propertyName">物件名</option>
+          <option value="address">住所</option>
+          <option value="contact">担当者</option>
+          <option value="phone">電話番号</option>
+          <option value="closingDay">締め日</option>
+          <option value="paymentDay">支払日</option>
+          <option value="memo">メモ</option>
+          <option value="caution">注意事項</option>
+        </select>
+        <div class="search-wrap" style="flex:1;min-width:160px">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="searchQ" placeholder="検索キーワード（スペースでAND）" oninput="renderTable()">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="clearSearch()" title="検索クリア" style="flex-shrink:0;padding:.5rem .6rem">✕</button>
       </div>
       <select class="f-sel" id="monthFilter" onchange="renderTable()">
         <option value="">すべての点検月</option>
@@ -1098,15 +1115,28 @@ function calcTotalAmt(d) {
   return (Number(d.amtKiki)||0)+(Number(d.amtSogo)||0)+(Number(d.amtBokaTaisho)||0)+(Number(d.amtBokaSetsu)||0);
 }
 
+
+function clearSearch() {
+  document.getElementById('searchQ').value = '';
+  var sf = document.getElementById('searchField');
+  if (sf) sf.value = 'all';
+  renderTable();
+}
 function renderTable() {
-  const raw = (document.getElementById('searchQ').value||'').toLowerCase().trim();
-  const keywords = raw ? raw.split(/\s+/).filter(Boolean) : [];
-  const mf = document.getElementById('monthFilter').value;
-  filteredData = allData.filter(d=>{
-    const searchTarget = [d.manageNo,d.propertyName,d.address,d.contact,d.phone,d.memo,d.closingDay,d.paymentDay]
-      .map(v=>String(v==null?'':v).toLowerCase()).join(' ');
-    const m = keywords.length===0 || keywords.every(kw=>searchTarget.includes(kw));
-    const mfOk = !mf || getMonths(d).includes(parseInt(mf));
+  var raw = (document.getElementById('searchQ').value||'').toLowerCase().trim();
+  var keywords = raw ? raw.split(/\s+/).filter(Boolean) : [];
+  var mf = document.getElementById('monthFilter').value;
+  var sf = (document.getElementById('searchField') && document.getElementById('searchField').value) || 'all';
+  filteredData = allData.filter(function(d) {
+    var searchTarget;
+    if (sf === 'all') {
+      searchTarget = [d.manageNo,d.propertyName,d.address,d.contact,d.phone,d.memo,d.closingDay,d.paymentDay,d.caution]
+        .map(function(v){ return String(v==null?'':v).toLowerCase(); }).join(' ');
+    } else {
+      searchTarget = String(d[sf]==null?'':d[sf]).toLowerCase();
+    }
+    var m = keywords.length===0 || keywords.every(function(kw){ return searchTarget.indexOf(kw) >= 0; });
+    var mfOk = !mf || getMonths(d).includes(parseInt(mf));
     return m && mfOk;
   });
   if (sortKey) {

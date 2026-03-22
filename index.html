@@ -730,6 +730,9 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
     <!-- 点検履歴 -->
     <div id="dpanel-hist" class="detail-body" style="display:none">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem">
+        <button class="btn btn-outline btn-sm" onclick="testGasConnection()" style="font-size:.72rem">🔌 GAS接続確認</button>
+      </div>
       <div class="hist-form">
         <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.6rem">＋ 点検履歴を追加</div>
         <div class="hist-form-grid">
@@ -1919,6 +1922,17 @@ function renderHist(items) {
     var inspHtml = h.inspector ? '<div class="hist-inspector">担当：' + esc(h.inspector) + '</div>' : '';
     return '<div class="hist-card">' + delBtn + dateHtml + resultHtml + issuesHtml + inspHtml + '</div>';
   }).join('');
+}
+
+
+function testGasConnection() {
+  if (!GAS_URL) { showToast('GAS URLが設定されていません', 'err'); return; }
+  showLoad(true);
+  api('getAll', {}).then(function(r) {
+    showToast('GAS接続OK！データ' + (r.data ? r.data.length : 0) + '件', 'ok');
+  }).catch(function(e) {
+    showToast('GAS接続失敗: ' + e.message, 'err');
+  }).finally(function() { showLoad(false); });
 }
 
 function addHist() {

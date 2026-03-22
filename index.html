@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<!-- v4.1 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検物件 顧客管理システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -193,6 +194,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .toolbar .search-wrap{min-width:120px}
 @media(max-width:640px){
   .amt-mobile-hide{display:none !important}
+  .pc-only{display:none !important}
 
   .main{padding:.75rem}
   .form-grid,.amt-grid{grid-template-columns:1fr}
@@ -713,7 +715,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
       <button class="dtab active" id="dtab-equip" onclick="switchDTab('equip')">🔧 設備リスト</button>
       <button class="dtab" id="dtab-caution" onclick="switchDTab('caution')">⚠️ 注意事項</button>
       <button class="dtab" id="dtab-hist" onclick="switchDTab('hist')">📋 点検履歴</button>
-      <button class="dtab" id="dtab-amthist" onclick="switchDTab('amthist')">💰 金額履歴</button>
+      <button class="dtab pc-only" id="dtab-amthist" onclick="switchDTab('amthist')" style="border-top:2px solid #f59e0b">💰 金額履歴</button>
     </div>
 
     <!-- 設備リスト -->

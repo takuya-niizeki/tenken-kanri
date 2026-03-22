@@ -685,43 +685,6 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
 
 
-<!-- ─── HIST EDIT MODAL ─── -->
-<div class="modal-bg" id="histEditModal" onclick="if(event.target===this)closeHistEdit()">
-  <div class="hist-edit-modal">
-    <div class="modal-hd">
-      <div class="modal-title">点検履歴を編集</div>
-      <button class="modal-close" onclick="closeHistEdit()">✕</button>
-    </div>
-    <input type="hidden" id="he-id">
-    <div class="form-grid">
-      <div class="fg"><label>点検日</label><input class="fi" id="he-date" type="date"></div>
-      <div class="fg"><label>結果</label>
-        <select class="fs" id="he-result">
-          <option value="異常なし">異常なし</option>
-          <option value="指摘あり">指摘あり</option>
-          <option value="要改修">要改修</option>
-          <option value="改修済み">改修済み</option>
-        </select>
-      </div>
-      <div class="fg full"><label>点検種類（複数選択可）</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;margin-top:.2rem">
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="機器点検" style="accent-color:var(--accent)"> 機器点検</label>
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="総合点検" style="accent-color:var(--accent)"> 総合点検</label>
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="防火対象物点検" style="accent-color:var(--accent)"> 防火対象物点検</label>
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="防火設備点検" style="accent-color:var(--accent)"> 防火設備点検</label>
-          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="その他" style="accent-color:var(--accent)"> その他</label>
-        </div>
-      </div>
-      <div class="fg"><label>担当者</label><input class="fi" id="he-inspector" placeholder="氏名"></div>
-      <div class="fg full"><label>指摘事項・特記</label><textarea class="fta" id="he-issues" style="min-height:60px"></textarea></div>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeHistEdit()">キャンセル</button>
-      <button class="btn btn-primary" onclick="saveHistEdit()">💾 保存</button>
-    </div>
-  </div>
-</div>
-
 <!-- ─── DETAIL PANEL ─── -->
 <div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
   <div class="detail-panel" id="detailPanel">
@@ -950,6 +913,43 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
           <span id="impBtnTxt">取込実行</span>
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── HIST EDIT MODAL ─── -->
+<div class="modal-bg" id="histEditModal" onclick="if(event.target===this)closeHistEdit()">
+  <div class="hist-edit-modal">
+    <div class="modal-hd">
+      <div class="modal-title">点検履歴を編集</div>
+      <button class="modal-close" onclick="closeHistEdit()">✕</button>
+    </div>
+    <input type="hidden" id="he-id">
+    <div class="form-grid">
+      <div class="fg"><label>点検日</label><input class="fi" id="he-date" type="date"></div>
+      <div class="fg"><label>結果</label>
+        <select class="fs" id="he-result">
+          <option value="異常なし">異常なし</option>
+          <option value="指摘あり">指摘あり</option>
+          <option value="要改修">要改修</option>
+          <option value="改修済み">改修済み</option>
+        </select>
+      </div>
+      <div class="fg full"><label>点検種類（複数選択可）</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;margin-top:.2rem">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="機器点検" style="accent-color:var(--accent)"> 機器点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="総合点検" style="accent-color:var(--accent)"> 総合点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="防火対象物点検" style="accent-color:var(--accent)"> 防火対象物点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="防火設備点検" style="accent-color:var(--accent)"> 防火設備点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="その他" style="accent-color:var(--accent)"> その他</label>
+        </div>
+      </div>
+      <div class="fg"><label>担当者</label><input class="fi" id="he-inspector" placeholder="氏名"></div>
+      <div class="fg full"><label>指摘事項・特記</label><textarea class="fta" id="he-issues" style="min-height:60px"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeHistEdit()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveHistEdit()">💾 保存</button>
     </div>
   </div>
 </div>

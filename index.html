@@ -455,6 +455,14 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .save-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:.9rem 1.25rem;display:flex;gap:.5rem;justify-content:flex-end}
 @media(max-width:640px){.detail-panel{max-width:100%;width:100%}.hist-form-grid{grid-template-columns:1fr}}
 
+
+/* ─── HIST EDIT MODAL ─── */
+.hist-edit-modal{background:#fff;border-radius:12px;padding:1.5rem;width:100%;max-width:520px;box-shadow:var(--sh-lg);animation:fadeUp .22s ease}
+.hist-card-actions{display:flex;gap:.35rem;position:absolute;top:.6rem;right:.6rem}
+.hist-card-btn{background:none;border:1px solid var(--border2);color:var(--text2);border-radius:5px;padding:2px 7px;font-size:.72rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+.hist-card-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hist-card-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+
 </style>
 </head>
 <body>
@@ -675,6 +683,44 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
 </div><!-- /main -->
 
+
+
+<!-- ─── HIST EDIT MODAL ─── -->
+<div class="modal-bg" id="histEditModal" onclick="if(event.target===this)closeHistEdit()">
+  <div class="hist-edit-modal">
+    <div class="modal-hd">
+      <div class="modal-title">点検履歴を編集</div>
+      <button class="modal-close" onclick="closeHistEdit()">✕</button>
+    </div>
+    <input type="hidden" id="he-id">
+    <div class="form-grid">
+      <div class="fg"><label>点検日</label><input class="fi" id="he-date" type="date"></div>
+      <div class="fg"><label>結果</label>
+        <select class="fs" id="he-result">
+          <option value="異常なし">異常なし</option>
+          <option value="指摘あり">指摘あり</option>
+          <option value="要改修">要改修</option>
+          <option value="改修済み">改修済み</option>
+        </select>
+      </div>
+      <div class="fg full"><label>点検種類（複数選択可）</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;margin-top:.2rem">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="機器点検" style="accent-color:var(--accent)"> 機器点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="総合点検" style="accent-color:var(--accent)"> 総合点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="防火対象物点検" style="accent-color:var(--accent)"> 防火対象物点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="防火設備点検" style="accent-color:var(--accent)"> 防火設備点検</label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="he-type-cb" value="その他" style="accent-color:var(--accent)"> その他</label>
+        </div>
+      </div>
+      <div class="fg"><label>担当者</label><input class="fi" id="he-inspector" placeholder="氏名"></div>
+      <div class="fg full"><label>指摘事項・特記</label><textarea class="fta" id="he-issues" style="min-height:60px"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeHistEdit()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveHistEdit()">💾 保存</button>
+    </div>
+  </div>
+</div>
 
 <!-- ─── DETAIL PANEL ─── -->
 <div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
@@ -1913,17 +1959,74 @@ function renderHist(items) {
     body.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:.85rem">点検履歴がありません</div>';
     return;
   }
-  body.innerHTML = items.map(function(h) {
+  var cards = [];
+  for (var i = 0; i < items.length; i++) {
+    var h = items[i];
     var rc = { '異常なし':'ok', '指摘あり':'cond', '要改修':'ng', '改修済み':'ok' };
-    var delBtn = '<button class="hist-del" onclick="deleteHist(\"' + h.id + '\")" title="削除">🗑</button>';
+    var actBtns = '<div class="hist-card-actions">' +
+      '<button class="hist-card-btn edit" id="hedit_' + h.id + '">✏️ 編集</button>' +
+      '<button class="hist-card-btn del" id="hdel_' + h.id + '">🗑 削除</button>' +
+      '</div>';
     var dateHtml = '<div><span class="hist-date">' + esc(h.date) + '</span><span class="hist-type">' + esc(h.type) + '</span></div>';
     var resultHtml = '<div class="hist-result ' + (rc[h.result]||'') + '">結果：' + esc(h.result) + '</div>';
     var issuesHtml = h.issues ? '<div class="hist-issues">📝 ' + esc(h.issues) + '</div>' : '';
     var inspHtml = h.inspector ? '<div class="hist-inspector">担当：' + esc(h.inspector) + '</div>' : '';
-    return '<div class="hist-card">' + delBtn + dateHtml + resultHtml + issuesHtml + inspHtml + '</div>';
-  }).join('');
+    cards.push('<div class="hist-card">' + actBtns + dateHtml + resultHtml + issuesHtml + inspHtml + '</div>');
+  }
+  body.innerHTML = cards.join('');
+  // イベント設定（クォート問題回避）
+  for (var j = 0; j < items.length; j++) {
+    (function(h) {
+      var eb = document.getElementById('hedit_' + h.id);
+      var db = document.getElementById('hdel_' + h.id);
+      if (eb) eb.onclick = function() { openHistEdit(h); };
+      if (db) db.onclick = function() { deleteHist(h.id); };
+    })(items[j]);
+  }
 }
 
+
+
+function openHistEdit(h) {
+  document.getElementById('he-id').value = h.id;
+  document.getElementById('he-date').value = h.date || '';
+  document.getElementById('he-result').value = h.result || '異常なし';
+  document.getElementById('he-inspector').value = h.inspector || '';
+  document.getElementById('he-issues').value = h.issues || '';
+  // チェックボックス設定
+  var types = (h.type || '').split('・');
+  document.querySelectorAll('.he-type-cb').forEach(function(cb) {
+    cb.checked = types.indexOf(cb.value) >= 0;
+  });
+  document.getElementById('histEditModal').classList.add('open');
+}
+
+function closeHistEdit() {
+  document.getElementById('histEditModal').classList.remove('open');
+}
+
+function saveHistEdit() {
+  var id = document.getElementById('he-id').value;
+  if (!id) return;
+  var checked = Array.from(document.querySelectorAll('.he-type-cb:checked')).map(function(cb){ return cb.value; });
+  if (!checked.length) { showToast('点検種類を選択してください', 'err'); return; }
+  var data = {
+    date:      document.getElementById('he-date').value,
+    type:      checked.join('・'),
+    result:    document.getElementById('he-result').value,
+    inspector: document.getElementById('he-inspector').value.trim(),
+    issues:    document.getElementById('he-issues').value.trim()
+  };
+  if (!data.date) { showToast('点検日を入力してください', 'err'); return; }
+  showLoad(true);
+  api('updateHist', { histId: id, data: data }).then(function() {
+    showToast('履歴を更新しました', 'ok');
+    closeHistEdit();
+    return loadHist();
+  }).catch(function(e) {
+    showToast('更新失敗: ' + e.message, 'err');
+  }).finally(function() { showLoad(false); });
+}
 
 function testGasConnection() {
   if (!GAS_URL) { showToast('GAS URLが設定されていません', 'err'); return; }

@@ -702,7 +702,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
         <div style="overflow-x:auto">
           <table class="equip-table">
             <thead><tr>
-              <th>設備種類</th><th style="width:60px">台数</th><th>設置場所</th><th>メモ</th><th style="width:32px"></th>
+              <th>設備種類</th><th>設置場所</th><th>メモ</th><th style="width:32px"></th>
             </tr></thead>
             <tbody id="equipBody"></tbody>
           </table>
@@ -1819,7 +1819,6 @@ function renderEquipRows() {
   tbody.innerHTML = equipEditing.map(function(item, i) {
     return '<tr>' +
       '<td><input class="equip-input" value="' + esc(item.type||'') + '" onchange="equipEditing[' + i + '].type=this.value" placeholder="例: 消火器"></td>' +
-      '<td><input class="equip-input" type="number" min="0" value="' + esc(item.count||'') + '" onchange="equipEditing[' + i + '].count=this.value" placeholder="0"></td>' +
       '<td><input class="equip-input" value="' + esc(item.location||'') + '" onchange="equipEditing[' + i + '].location=this.value" placeholder="例: 1F廊下"></td>' +
       '<td><input class="equip-input" value="' + esc(item.memo||'') + '" onchange="equipEditing[' + i + '].memo=this.value" placeholder="メモ"></td>' +
       '<td><button onclick="removeEquipRow(' + i + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem">🗑</button></td>' +

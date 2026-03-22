@@ -463,6 +463,20 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .hist-card-btn:hover{border-color:var(--accent);color:var(--accent)}
 .hist-card-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
 
+
+/* ─── AMOUNT HISTORY ─── */
+.amth-card{background:var(--bg);border-radius:8px;padding:.85rem 1rem;margin-bottom:.55rem;border-left:3px solid var(--accent)}
+.amth-date{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--text2);margin-bottom:.4rem}
+.amth-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.2rem 0}
+.amth-label{color:var(--text2);font-size:.75rem}
+.amth-old{color:var(--text3);text-decoration:line-through;font-family:'DM Mono',monospace;font-size:.78rem}
+.amth-new{color:var(--accent);font-weight:700;font-family:'DM Mono',monospace}
+.amth-arrow{color:var(--text3);margin:0 .4rem;font-size:.75rem}
+.amth-total{display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:.4rem;padding-top:.4rem;font-weight:700}
+.amth-total-old{color:var(--text3);text-decoration:line-through;font-family:'DM Mono',monospace;font-size:.8rem}
+.amth-total-new{color:var(--accent);font-family:'DM Mono',monospace}
+.amth-user{font-size:.72rem;color:var(--text3);margin-top:.3rem}
+
 </style>
 </head>
 <body>
@@ -699,6 +713,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
       <button class="dtab active" id="dtab-equip" onclick="switchDTab('equip')">🔧 設備リスト</button>
       <button class="dtab" id="dtab-caution" onclick="switchDTab('caution')">⚠️ 注意事項</button>
       <button class="dtab" id="dtab-hist" onclick="switchDTab('hist')">📋 点検履歴</button>
+      <button class="dtab" id="dtab-amthist" onclick="switchDTab('amthist')">💰 金額履歴</button>
     </div>
 
     <!-- 設備リスト -->
@@ -1449,29 +1464,36 @@ async function saveRecord(){
   if(!data.propertyName){ showToast('物件名は必須です','err'); return; }
   showLoad(true);
   try{
-    if(editingId) await api('update',{id:editingId,data});
-    else await api('create',{data});
+    if(editingId){
+      const prev = allData.find(r=> r.id === editingId);
+      if(prev){
+        const amtFields = ['amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu'];
+        const changes = [];
+        amtFields.forEach(f=>{
+          const oldV = Number(prev[f])||0;
+          const newV = Number(data[f])||0;
+          if(oldV !== newV) changes.push({field:f, oldVal:oldV, newVal:newV});
+        });
+        if(changes.length){
+          const oldTotal = amtFields.reduce((s,f)=>s+(Number(prev[f])||0),0);
+          const newTotal = amtFields.reduce((s,f)=>s+(Number(data[f])||0),0);
+          try{
+            await api('addAmtHist',{
+              customerId: editingId,
+              data:{ changes:JSON.stringify(changes), oldTotal:oldTotal, newTotal:newTotal }
+            });
+          }catch(e){ console.warn('金額履歴記録失敗:', e.message); }
+        }
+      }
+      await api('update',{id:editingId,data});
+    } else {
+      await api('create',{data});
+    }
     showToast(editingId?'更新しました':'登録しました','ok');
     closeModal();
     await loadData();
   }catch(e){ showToast('保存失敗: '+e.message,'err'); }
   finally{ showLoad(false); }
-}
-
-async function deleteAllRecords() {
-  if (!allData.length) { showToast('削除するデータがありません', 'err'); return; }
-  const input = prompt(`⚠️ 全件削除の確認\n\n現在 ${allData.length} 件のデータがあります。\n全て削除するには「全件削除」と入力してください。`);
-  if (input !== '全件削除') { showToast('キャンセルしました', 'info'); return; }
-  showLoad(true);
-  try {
-    await api('deleteAll', {});
-    showToast(`${allData.length}件のデータを削除しました`, 'ok');
-    await loadData();
-  } catch(e) {
-    showToast('削除失敗: ' + e.message, 'err');
-  } finally {
-    showLoad(false);
-  }
 }
 
 async function delRecord(id,name){
@@ -1837,13 +1859,16 @@ function closeDetail() {
 }
 
 function switchDTab(tab) {
-  ['equip','caution','hist'].forEach(function(t) {
-    document.getElementById('dtab-' + t).classList.toggle('active', t === tab);
-    document.getElementById('dpanel-' + t).style.display = t === tab ? 'block' : 'none';
+  ['equip','caution','hist','amthist'].forEach(function(t) {
+    var tbtn = document.getElementById('dtab-' + t);
+    var tpanel = document.getElementById('dpanel-' + t);
+    if (tbtn) tbtn.classList.toggle('active', t === tab);
+    if (tpanel) tpanel.style.display = t === tab ? 'block' : 'none';
   });
   if (tab === 'equip')   loadEquip();
   if (tab === 'caution') loadCaution();
   if (tab === 'hist')    loadHist();
+  if (tab === 'amthist') loadAmtHist();
 }
 
 // ── 設備リスト ──
@@ -2028,6 +2053,61 @@ function saveHistEdit() {
   }).finally(function() { showLoad(false); });
 }
 
+
+// ─── AMOUNT HISTORY ───
+function loadAmtHist() {
+  if (!currentDetailId) return;
+  var body = document.getElementById('amtHistBody');
+  body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text3)">読み込み中...</div>';
+  api('getAmtHist', { customerId: currentDetailId }).then(function(r) {
+    renderAmtHist(r.data || []);
+  }).catch(function(e) {
+    body.innerHTML = '<div style="color:var(--red);padding:1rem;font-size:.82rem">読み込み失敗: ' + e.message + '</div>';
+  });
+}
+
+function renderAmtHist(items) {
+  var body = document.getElementById('amtHistBody');
+  if (!items.length) {
+    body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">金額変更履歴がありません</div>';
+    return;
+  }
+  var amtLabels = {
+    amtKiki: '機器点検金額',
+    amtSogo: '総合点検金額',
+    amtBokaTaisho: '防火対象物点検金額',
+    amtBokaSetsu: '防火設備点検金額'
+  };
+  body.innerHTML = items.map(function(h) {
+    var changes = h.changes ? JSON.parse(h.changes) : [];
+    var changeHtml = changes.map(function(c) {
+      return '<div class="amth-row">' +
+        '<span class="amth-label">' + (amtLabels[c.field] || c.field) + '</span>' +
+        '<div style="display:flex;align-items:center">' +
+          '<span class="amth-old">' + (c.oldVal ? '¥'+Number(c.oldVal).toLocaleString() : '—') + '</span>' +
+          '<span class="amth-arrow">→</span>' +
+          '<span class="amth-new">¥' + Number(c.newVal).toLocaleString() + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    var totalChange = h.oldTotal !== undefined ? (
+      '<div class="amth-total">' +
+        '<span style="font-size:.78rem;color:var(--text2)">合計</span>' +
+        '<div style="display:flex;align-items:center;gap:.3rem">' +
+          '<span class="amth-total-old">' + (h.oldTotal ? '¥'+Number(h.oldTotal).toLocaleString() : '—') + '</span>' +
+          '<span class="amth-arrow">→</span>' +
+          '<span class="amth-total-new">¥' + Number(h.newTotal).toLocaleString() + '</span>' +
+        '</div>' +
+      '</div>'
+    ) : '';
+    return '<div class="amth-card">' +
+      '<div class="amth-date">🕐 ' + esc(h.updatedAt) + '</div>' +
+      changeHtml +
+      totalChange +
+    '</div>';
+  }).join('');
+}
+
 function testGasConnection() {
   if (!GAS_URL) { showToast('GAS URLが設定されていません', 'err'); return; }
   showLoad(true);
@@ -2085,3 +2165,10 @@ function showToast(msg,type=''){
 </script>
 </body>
 </html>
+    <!-- 金額履歴 -->
+    <div id="dpanel-amthist" class="detail-body" style="display:none">
+      <div class="dsec-title" style="margin-bottom:.75rem"><span>💰 金額変更履歴</span></div>
+      <div id="amtHistBody">
+        <div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">読み込み中...</div>
+      </div>
+    </div>

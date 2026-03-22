@@ -2067,6 +2067,26 @@ function saveHistEdit() {
 
 
 // ─── AMOUNT HISTORY ───
+
+function testAmtHist() {
+  if (!currentDetailId) { showToast('物件が選択されていません', 'err'); return; }
+  showLoad(true);
+  var testData = {
+    changes: JSON.stringify([{field:'amtKiki', oldVal:0, newVal:10000}]),
+    oldTotal: 0,
+    newTotal: 10000
+  };
+  api('addAmtHist', { customerId: currentDetailId, data: testData }).then(function(r) {
+    showToast('テスト記録成功！', 'ok');
+    return loadAmtHist();
+  }).catch(function(e) {
+    showToast('テスト失敗: ' + e.message, 'err');
+    document.getElementById('amtHistBody').innerHTML =
+      '<div style="background:#fde8e8;border-radius:8px;padding:.9rem;font-size:.8rem;color:#c81e1e;margin-top:.5rem">' +
+      '<strong>GASエラー詳細:</strong><br>' + e.message + '</div>';
+  }).finally(function() { showLoad(false); });
+}
+
 function loadAmtHist() {
   if (!currentDetailId) return;
   var body = document.getElementById('amtHistBody');
@@ -2179,7 +2199,10 @@ function showToast(msg,type=''){
 </html>
     <!-- 金額履歴 -->
     <div id="dpanel-amthist" class="detail-body" style="display:none">
-      <div class="dsec-title" style="margin-bottom:.75rem"><span>💰 金額変更履歴</span></div>
+      <div class="dsec-title" style="margin-bottom:.75rem">
+        <span>💰 金額変更履歴</span>
+        <button class="btn btn-outline btn-sm" onclick="testAmtHist()" style="font-size:.72rem">🔌 記録テスト</button>
+      </div>
       <div id="amtHistBody">
         <div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">読み込み中...</div>
       </div>

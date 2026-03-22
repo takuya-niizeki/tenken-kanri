@@ -192,6 +192,8 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 /* search field responsive */
 .toolbar .search-wrap{min-width:120px}
 @media(max-width:640px){
+  .amt-mobile-hide{display:none !important}
+
   .main{padding:.75rem}
   .form-grid,.amt-grid{grid-template-columns:1fr}
   .amt-total-row{grid-column:1/-1}
@@ -784,8 +786,8 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
       <!-- JS で生成 -->
     </div>
 
-    <div class="section-title"><span></span>点検金額（円・税抜）</div>
-    <div class="amt-grid">
+    <div class="section-title amt-mobile-hide"><span></span>点検金額（円・税抜）</div>
+    <div class="amt-grid amt-mobile-hide">
       <div class="fg"><label>機器点検金額</label>
         <div class="fi-prefix"><span class="prefix">¥</span><input class="fi" id="f-amtKiki" type="number" min="0" placeholder="0" oninput="calcTotal()"></div>
       </div>

@@ -734,14 +734,14 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
         <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.6rem">＋ 点検履歴を追加</div>
         <div class="hist-form-grid">
           <div class="fg"><label>点検日</label><input class="fi" id="hf-date" type="date"></div>
-          <div class="fg"><label>点検種類</label>
-            <select class="fs" id="hf-type">
-              <option value="機器点検">機器点検</option>
-              <option value="総合点検">総合点検</option>
-              <option value="防火対象物点検">防火対象物点検</option>
-              <option value="防火設備点検">防火設備点検</option>
-              <option value="その他">その他</option>
-            </select>
+          <div class="fg full"><label>点検種類（複数選択可）</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;margin-top:.2rem">
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="hf-type-cb" value="機器点検" style="accent-color:var(--accent)"> 機器点検</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="hf-type-cb" value="総合点検" style="accent-color:var(--accent)"> 総合点検</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="hf-type-cb" value="防火対象物点検" style="accent-color:var(--accent)"> 防火対象物点検</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="hf-type-cb" value="防火設備点検" style="accent-color:var(--accent)"> 防火設備点検</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.83rem;font-weight:400;cursor:pointer"><input type="checkbox" class="hf-type-cb" value="その他" style="accent-color:var(--accent)"> その他</label>
+            </div>
           </div>
           <div class="fg"><label>結果</label>
             <select class="fs" id="hf-result">
@@ -1922,18 +1922,23 @@ function renderHist(items) {
 }
 
 function addHist() {
-  if (!currentDetailId) return;
+  if (!currentDetailId) { showToast('物件が選択されていません', 'err'); return; }
+  var checked = Array.from(document.querySelectorAll('.hf-type-cb:checked')).map(function(cb){ return cb.value; });
+  if (!checked.length) { showToast('点検種類を選択してください', 'err'); return; }
   var data = {
     date:      document.getElementById('hf-date').value,
-    type:      document.getElementById('hf-type').value,
+    type:      checked.join('・'),
     result:    document.getElementById('hf-result').value,
     inspector: document.getElementById('hf-inspector').value.trim(),
     issues:    document.getElementById('hf-issues').value.trim()
   };
   if (!data.date) { showToast('点検日を入力してください', 'err'); return; }
+  if (!GAS_URL) { showToast('GAS URLが設定されていません', 'err'); return; }
   showLoad(true);
   api('addHist', { customerId: currentDetailId, data: data }).then(function() {
     showToast('履歴を追加しました', 'ok');
+    // チェックボックスをリセット
+    document.querySelectorAll('.hf-type-cb').forEach(function(cb){ cb.checked = false; });
     document.getElementById('hf-issues').value = '';
     document.getElementById('hf-inspector').value = '';
     return loadHist();

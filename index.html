@@ -1219,72 +1219,51 @@ function renderMobileCards(page) {
   }
   var nowM = new Date().getMonth() + 1;
   var nextM = nowM === 12 ? 1 : nowM + 1;
-
-  wrap.innerHTML = page.map(function(d) {
+  var cards = [];
+  for (var i = 0; i < page.length; i++) {
+    var d = page[i];
     var months = getMonths(d);
-    var monthHtml = months.length ? months.map(function(m) {
+    var monthParts = [];
+    for (var mi = 0; mi < months.length; mi++) {
+      var m = months[mi];
       var cls = m===nowM ? ' soon' : m===nextM ? ' near' : '';
-      return '<span class="month-badge' + cls + '">' + m + '月</span>';
-    }).join(' ') : '';
-
+      monthParts.push('<span class="month-badge' + cls + '">' + m + '月</span>');
+    }
     var manageTag = d.manageNo ? '<span class="mc-badge">' + esc(d.manageNo) + '</span>' : '';
-    var cautionHtml = d.caution ? '<div class="mc-caution">⚠️ ' + esc(d.caution).replace(/\n/g,'<br>') + '</div>' : '';
+    var addressHtml = d.address ? '<div class="mc-field" style="grid-column:1/-1"><div class="mc-field-label">住所</div><div class="mc-field-value">' + esc(d.address) + '</div></div>' : '';
+    var phoneHtml = d.phone ? '<div class="mc-field"><div class="mc-field-label">電話</div><div class="mc-field-value"><a href="tel:' + esc(d.phone) + '">' + esc(d.phone) + '</a></div></div>' : '';
+    var closingHtml = d.closingDay ? '<div class="mc-field"><div class="mc-field-label">締め日</div><div class="mc-field-value">' + esc(d.closingDay) + '</div></div>' : '';
+    var paymentHtml = d.paymentDay ? '<div class="mc-field"><div class="mc-field-label">支払日</div><div class="mc-field-value">' + esc(d.paymentDay) + '</div></div>' : '';
+    var infoGrid = addressHtml + phoneHtml + closingHtml + paymentHtml;
+    var monthsHtml = monthParts.length ? '<div class="mc-months"><span class="mc-months-label">点検月</span>' + monthParts.join('') + '</div>' : '';
+    var cautionHtml = d.caution ? '<div class="mc-caution">⚠️ ' + esc(d.caution) + '</div>' : '';
     var memoHtml = d.memo ? '<div class="mc-memo">📝 ' + esc(d.memo) + '</div>' : '';
 
-    var addressHtml = d.address ? (
-      '<div class="mc-field" style="grid-column:1/-1">' +
-        '<div class="mc-field-label">住所</div>' +
-        '<div class="mc-field-value">' + esc(d.address) + '</div>' +
-      '</div>'
-    ) : '';
+    var card = '<div class="mc">';
+    card += '<div class="mc-top">';
+    card += '<div class="mc-left">' + manageTag + '<div class="mc-name">' + esc(d.propertyName) + '</div><div class="mc-contact">' + (esc(d.contact) || '担当者未設定') + '</div></div>';
+    card += '<div class="mc-actions">';
+    card += '<button class="mc-btn mc-btn-detail" id="mcd_' + d.id + '">📋 詳細</button>';
+    card += '<button class="mc-btn mc-btn-edit" id="mce_' + d.id + '">✏️ 編集</button>';
+    card += '</div></div>';
+    if (infoGrid) card += '<div class="mc-divider"></div><div class="mc-info">' + infoGrid + '</div>';
+    if (monthsHtml) card += '<div class="mc-divider"></div>' + monthsHtml;
+    if (cautionHtml) card += '<div class="mc-divider"></div>' + cautionHtml;
+    if (memoHtml) card += memoHtml;
+    card += '</div>';
+    cards.push(card);
+  }
+  wrap.innerHTML = cards.join('');
 
-    var phoneHtml = d.phone ? (
-      '<div class="mc-field">' +
-        '<div class="mc-field-label">電話</div>' +
-        '<div class="mc-field-value"><a href="tel:' + esc(d.phone) + '">' + esc(d.phone) + '</a></div>' +
-      '</div>'
-    ) : '';
-
-    var closingHtml = d.closingDay ? (
-      '<div class="mc-field">' +
-        '<div class="mc-field-label">締め日</div>' +
-        '<div class="mc-field-value">' + esc(d.closingDay) + '</div>' +
-      '</div>'
-    ) : '';
-
-    var paymentHtml = d.paymentDay ? (
-      '<div class="mc-field">' +
-        '<div class="mc-field-label">支払日</div>' +
-        '<div class="mc-field-value">' + esc(d.paymentDay) + '</div>' +
-      '</div>'
-    ) : '';
-
-    var infoGrid = addressHtml + phoneHtml + closingHtml + paymentHtml;
-    var monthsSection = monthHtml ? (
-      '<div class="mc-months">' +
-        '<span class="mc-months-label">点検月</span>' +
-        monthHtml +
-      '</div>'
-    ) : '';
-
-    return '<div class="mc">' +
-      '<div class="mc-top">' +
-        '<div class="mc-left">' +
-          manageTag +
-          '<div class="mc-name">' + esc(d.propertyName) + '</div>' +
-          '<div class="mc-contact">' + (esc(d.contact) || '担当者未設定') + '</div>' +
-        '</div>' +
-        '<div class="mc-actions">' +
-          '<button class="mc-btn mc-btn-detail" onclick="openDetail(\"' + d.id + '\")">📋 詳細</button>' +
-          '<button class="mc-btn mc-btn-edit" onclick="openModal(\"' + d.id + '\")">✏️ 編集</button>' +
-        '</div>' +
-      '</div>' +
-      (infoGrid ? '<div class="mc-divider"></div><div class="mc-info">' + infoGrid + '</div>' : '') +
-      (monthsSection ? '<div class="mc-divider"></div>' + monthsSection : '') +
-      (cautionHtml ? '<div class="mc-divider"></div>' + cautionHtml : '') +
-      (memoHtml ? memoHtml : '') +
-    '</div>';
-  }).join('');
+  // ボタンにイベントを後から設定（onclick属性のクォート問題を回避）
+  for (var j = 0; j < page.length; j++) {
+    (function(id) {
+      var db = document.getElementById('mcd_' + id);
+      var eb = document.getElementById('mce_' + id);
+      if (db) db.onclick = function() { openDetail(id); };
+      if (eb) eb.onclick = function() { openModal(id); };
+    })(page[j].id);
+  }
 }
 
 function renderSummary() {

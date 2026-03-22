@@ -790,6 +790,17 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
       <div class="dsec-title" style="margin-bottom:.5rem"><span>過去の点検記録</span></div>
       <div id="histBody"></div>
     </div>
+
+    <!-- 金額履歴 -->
+    <div id="dpanel-amthist" class="detail-body" style="display:none">
+      <div class="dsec-title" style="margin-bottom:.75rem">
+        <span>💰 金額変更履歴</span>
+        <button class="btn btn-outline btn-sm" onclick="testAmtHist()" style="font-size:.72rem">🔌 記録テスト</button>
+      </div>
+      <div id="amtHistBody">
+        <div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">読み込み中...</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2110,6 +2121,10 @@ function renderAmtHist(items) {
     amtBokaTaisho: '防火対象物点検金額',
     amtBokaSetsu: '防火設備点検金額'
   };
+  // 現在表示中の物件名を取得
+  var customer = currentDetailId ? allData.find(function(r){ return r.id === currentDetailId; }) : null;
+  var propName = customer ? (customer.manageNo ? '[' + customer.manageNo + '] ' : '') + customer.propertyName : '';
+
   body.innerHTML = items.map(function(h) {
     var changes = h.changes ? JSON.parse(h.changes) : [];
     var changeHtml = changes.map(function(c) {
@@ -2133,6 +2148,7 @@ function renderAmtHist(items) {
       '</div>'
     ) : '';
     return '<div class="amth-card">' +
+      (propName ? '<div style="font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:.3rem">🏢 ' + esc(propName) + '</div>' : '') +
       '<div class="amth-date">🕐 ' + esc(h.updatedAt) + '</div>' +
       changeHtml +
       totalChange +
@@ -2197,13 +2213,3 @@ function showToast(msg,type=''){
 </script>
 </body>
 </html>
-    <!-- 金額履歴 -->
-    <div id="dpanel-amthist" class="detail-body" style="display:none">
-      <div class="dsec-title" style="margin-bottom:.75rem">
-        <span>💰 金額変更履歴</span>
-        <button class="btn btn-outline btn-sm" onclick="testAmtHist()" style="font-size:.72rem">🔌 記録テスト</button>
-      </div>
-      <div id="amtHistBody">
-        <div style="text-align:center;padding:2rem;color:var(--text3);font-size:.85rem">読み込み中...</div>
-      </div>
-    </div>

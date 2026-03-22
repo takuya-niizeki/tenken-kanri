@@ -188,6 +188,127 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .empty-state{text-align:center;padding:3rem 2rem;color:var(--text3)}
 .empty-state svg{width:44px;height:44px;margin:0 auto .75rem;display:block;opacity:.3}
 
+/* ─── MOBILE REDESIGN ─── */
+@media(max-width:640px){
+  .main{padding:.75rem}
+  .form-grid,.amt-grid{grid-template-columns:1fr}
+  .amt-total-row{grid-column:1/-1}
+  .stats-row{grid-template-columns:1fr 1fr}
+  header{padding:0 .75rem}
+  .logo>span{display:none}
+  .table-wrap{display:none}
+  .mobile-cards{display:flex !important}
+  .toolbar{gap:.4rem;padding:.6rem .75rem}
+  .btn span.btn-label{display:none}
+  .privacy-btn{display:inline-flex}
+  /* ヘッダー最適化 */
+  .header-r{gap:.4rem}
+  .conn-badge{font-size:.65rem;padding:3px 7px}
+  #countdownBadge{display:none !important}
+  /* タブ最適化 */
+  .tabs{width:100%}
+  .tab-btn{flex:1;font-size:.78rem;padding:.4rem .5rem}
+}
+
+/* ─── NEW MOBILE CARDS ─── */
+.mobile-cards{
+  display:none;
+  flex-direction:column;
+  gap:.65rem;
+  padding:.75rem;
+}
+.mc{
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.07);
+  overflow:hidden;
+  border:1px solid var(--border);
+}
+.mc-top{
+  padding:.9rem 1rem .75rem;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:.5rem;
+}
+.mc-left{flex:1;min-width:0}
+.mc-badge{
+  display:inline-block;
+  font-family:'DM Mono',monospace;
+  font-size:.7rem;
+  font-weight:700;
+  color:#fff;
+  background:var(--accent);
+  padding:2px 7px;
+  border-radius:4px;
+  margin-bottom:.35rem;
+}
+.mc-name{
+  font-size:.95rem;
+  font-weight:700;
+  color:var(--text);
+  line-height:1.35;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.mc-contact{font-size:.75rem;color:var(--text2);margin-top:2px}
+.mc-actions{display:flex;flex-direction:column;gap:.3rem;flex-shrink:0}
+.mc-btn{
+  padding:.3rem .65rem;
+  border-radius:7px;
+  font-size:.73rem;
+  font-weight:600;
+  cursor:pointer;
+  border:none;
+  white-space:nowrap;
+  font-family:'Noto Sans JP',sans-serif;
+}
+.mc-btn-detail{background:var(--accent);color:#fff}
+.mc-btn-edit{background:var(--bg);border:1px solid var(--border2);color:var(--text2)}
+.mc-divider{height:1px;background:var(--border);margin:0 1rem}
+.mc-info{
+  padding:.65rem 1rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.4rem .75rem;
+}
+.mc-field{display:flex;flex-direction:column;gap:1px}
+.mc-field-label{font-size:.65rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.mc-field-value{font-size:.8rem;color:var(--text);font-weight:500}
+.mc-field-value.full{grid-column:1/-1}
+.mc-field-value a{color:var(--accent);text-decoration:none}
+.mc-months{
+  padding:.5rem 1rem .75rem;
+  display:flex;
+  flex-wrap:wrap;
+  gap:.3rem;
+  align-items:center;
+}
+.mc-months-label{font-size:.65rem;color:var(--text3);font-weight:700;text-transform:uppercase;margin-right:.25rem}
+.mc-caution{
+  margin:.0 .75rem .75rem;
+  background:#fffbeb;
+  border:1px solid #fcd34d;
+  border-left:3px solid #f59e0b;
+  border-radius:7px;
+  padding:.5rem .75rem;
+  font-size:.75rem;
+  color:#92400e;
+  line-height:1.6;
+}
+.mc-memo{
+  margin:0 .75rem .75rem;
+  background:var(--bg);
+  border-radius:7px;
+  padding:.5rem .75rem;
+  font-size:.75rem;
+  color:var(--text2);
+  line-height:1.6;
+  border-left:3px solid var(--border2);
+}
+.mc-empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.85rem}
+
 /* ─── PRIVACY MODE ─── */
 .privacy-btn{display:none}
 .amount-mask{
@@ -1090,80 +1211,82 @@ function renderPage() {
 
 // ─── MOBILE CARDS ───
 function renderMobileCards(page) {
-  const wrap = document.getElementById('mobileCards');
+  var wrap = document.getElementById('mobileCards');
   if (!wrap) return;
   if (!page.length) {
-    wrap.innerHTML = `<div class="m-empty">${GAS_URL ? 'データがありません' : 'GAS URLを設定してください'}</div>`;
+    wrap.innerHTML = '<div class="mc-empty">' + (GAS_URL ? 'データがありません' : 'GAS URLを設定してください') + '</div>';
     return;
   }
-  const nowM = new Date().getMonth() + 1;
-  const nextM = nowM === 12 ? 1 : nowM + 1;
-  wrap.innerHTML = page.map(d => {
-    const ta = calcTotalAmt(d);
-    const months = getMonths(d);
-    const monthHtml = months.length ? months.map(m => {
-      let cls = ''; if(m===nowM) cls=' soon'; else if(m===nextM) cls=' near';
-      return `<span class="month-badge${cls}">${m}月</span>`;
-    }).join('') : '<span style="color:var(--text3);font-size:.78rem">—</span>';
+  var nowM = new Date().getMonth() + 1;
+  var nextM = nowM === 12 ? 1 : nowM + 1;
 
-    const amtRows = [
-      ['機器点検', d.amtKiki],
-      ['総合点検', d.amtSogo],
-      ['防火対象物', d.amtBokaTaisho],
-      ['防火設備', d.amtBokaSetsu],
-    ].filter(([,v]) => Number(v) > 0);
+  wrap.innerHTML = page.map(function(d) {
+    var months = getMonths(d);
+    var monthHtml = months.length ? months.map(function(m) {
+      var cls = m===nowM ? ' soon' : m===nextM ? ' near' : '';
+      return '<span class="month-badge' + cls + '">' + m + '月</span>';
+    }).join(' ') : '';
 
-    const amtHtml = amtRows.length ? `
-      <div class="m-card-amounts">
-        <div class="m-amt-title">点検金額内訳</div>
-        <div class="m-amt-grid">
-          ${amtRows.map(([l,v]) => `
-            <div class="m-amt-row">
-              <span class="m-amt-lbl">${l}</span>
-              <span class="m-amt-num">${maskAmt('¥'+Number(v).toLocaleString())}</span>
-            </div>`).join('')}
-        </div>
-        ${ta ? `<div class="m-amt-total"><span>合計</span><span>${maskAmt('¥'+ta.toLocaleString())}</span></div>` : ''}
-      </div>` : '';
+    var manageTag = d.manageNo ? '<span class="mc-badge">' + esc(d.manageNo) + '</span>' : '';
+    var cautionHtml = d.caution ? '<div class="mc-caution">⚠️ ' + esc(d.caution).replace(/\n/g,'<br>') + '</div>' : '';
+    var memoHtml = d.memo ? '<div class="mc-memo">📝 ' + esc(d.memo) + '</div>' : '';
 
-    return `<div class="m-card">
-      <div class="m-card-header">
-        <div>
-          <div class="m-card-name">${d.manageNo ? `<span style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--accent);font-weight:600;margin-right:.4rem">${esc(d.manageNo)}</span>` : ''}${esc(d.propertyName)}</div>
-          <div class="m-card-contact">${esc(d.contact) || '担当者未設定'}</div>
-        </div>
-        <div class="m-card-acts">
-          <button class="btn btn-edit-sm btn-sm" onclick="openModal('${d.id}')">編集</button>
-          <button class="btn btn-del-sm btn-sm" onclick="delRecord('${d.id}','${esc(d.propertyName)}')">削除</button>
-        </div>
-      </div>
-      <div class="m-card-body">
-        ${d.address ? `<div class="m-field" style="grid-column:1/-1">
-          <div class="m-field-label">住所</div>
-          <div class="m-field-value">${esc(d.address)}</div>
-        </div>` : ''}
-        ${d.phone ? `<div class="m-field">
-          <div class="m-field-label">電話番号</div>
-          <div class="m-field-value"><a href="tel:${esc(d.phone)}">${esc(d.phone)}</a></div>
-        </div>` : ''}
-        ${d.closingDay ? `<div class="m-field">
-          <div class="m-field-label">締め日</div>
-          <div class="m-field-value mono">${esc(d.closingDay)}</div>
-        </div>` : ''}
-        ${d.paymentDay ? `<div class="m-field">
-          <div class="m-field-label">支払日</div>
-          <div class="m-field-value mono">${esc(d.paymentDay)}</div>
-        </div>` : ''}
-      </div>
-      ${amtHtml}
-      ${months.length ? `<div class="m-field" style="margin-bottom:.5rem">
-        <div class="m-field-label" style="margin-bottom:.35rem">点検月</div>
-        <div class="m-card-months">${monthHtml}</div>
-      </div>` : ''}
-      ${d.memo ? `<div class="m-memo">📝 ${esc(d.memo)}</div>` : ''}
-    </div>`;
+    var addressHtml = d.address ? (
+      '<div class="mc-field" style="grid-column:1/-1">' +
+        '<div class="mc-field-label">住所</div>' +
+        '<div class="mc-field-value">' + esc(d.address) + '</div>' +
+      '</div>'
+    ) : '';
+
+    var phoneHtml = d.phone ? (
+      '<div class="mc-field">' +
+        '<div class="mc-field-label">電話</div>' +
+        '<div class="mc-field-value"><a href="tel:' + esc(d.phone) + '">' + esc(d.phone) + '</a></div>' +
+      '</div>'
+    ) : '';
+
+    var closingHtml = d.closingDay ? (
+      '<div class="mc-field">' +
+        '<div class="mc-field-label">締め日</div>' +
+        '<div class="mc-field-value">' + esc(d.closingDay) + '</div>' +
+      '</div>'
+    ) : '';
+
+    var paymentHtml = d.paymentDay ? (
+      '<div class="mc-field">' +
+        '<div class="mc-field-label">支払日</div>' +
+        '<div class="mc-field-value">' + esc(d.paymentDay) + '</div>' +
+      '</div>'
+    ) : '';
+
+    var infoGrid = addressHtml + phoneHtml + closingHtml + paymentHtml;
+    var monthsSection = monthHtml ? (
+      '<div class="mc-months">' +
+        '<span class="mc-months-label">点検月</span>' +
+        monthHtml +
+      '</div>'
+    ) : '';
+
+    return '<div class="mc">' +
+      '<div class="mc-top">' +
+        '<div class="mc-left">' +
+          manageTag +
+          '<div class="mc-name">' + esc(d.propertyName) + '</div>' +
+          '<div class="mc-contact">' + (esc(d.contact) || '担当者未設定') + '</div>' +
+        '</div>' +
+        '<div class="mc-actions">' +
+          '<button class="mc-btn mc-btn-detail" onclick="openDetail(\"' + d.id + '\")">📋 詳細</button>' +
+          '<button class="mc-btn mc-btn-edit" onclick="openModal(\"' + d.id + '\")">✏️ 編集</button>' +
+        '</div>' +
+      '</div>' +
+      (infoGrid ? '<div class="mc-divider"></div><div class="mc-info">' + infoGrid + '</div>' : '') +
+      (monthsSection ? '<div class="mc-divider"></div>' + monthsSection : '') +
+      (cautionHtml ? '<div class="mc-divider"></div>' + cautionHtml : '') +
+      (memoHtml ? memoHtml : '') +
+    '</div>';
   }).join('');
 }
+
 function renderSummary() {
   const sb = document.getElementById('summaryBody');
   const sf = document.getElementById('summaryFoot');

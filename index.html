@@ -128,7 +128,7 @@ tr:hover td{background:#fafbff}
 .page-btns button:disabled{opacity:.35;cursor:not-allowed}
 
 /* ─── MODAL ─── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);backdrop-filter:blur(3px);z-index:300;align-items:center;justify-content:center;padding:1rem}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);backdrop-filter:blur(3px);z-index:8000;align-items:center;justify-content:center;padding:1rem}
 .modal-bg.open{display:flex}
 .modal{background:#fff;border-radius:14px;padding:1.75rem;width:100%;max-width:680px;max-height:94vh;overflow-y:auto;box-shadow:var(--sh-lg);animation:fadeUp .22s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
@@ -180,7 +180,7 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .toast.info{background:#1e3a8a;color:#fff}
 
 /* ─── LOADING ─── */
-.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.75);display:none;align-items:center;justify-content:center;z-index:400}
+.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.75);display:none;align-items:center;justify-content:center;z-index:9000}
 .loading-ov.show{display:flex}
 .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -409,9 +409,9 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 .m-empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.85rem}
 
 /* ─── DETAIL PANEL ─── */
-.detail-overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:400;display:none;align-items:flex-start;justify-content:flex-end}
+.detail-overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:8000;display:none;align-items:flex-start;justify-content:flex-end}
 .detail-overlay.open{display:flex}
-.detail-panel{background:#fff;width:100%;max-width:560px;height:100vh;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:slideIn .25s ease}
+.detail-panel{background:#fff;width:100%;max-width:560px;height:100vh;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:slideIn .25s ease;position:relative;z-index:8001}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
 .detail-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10}
 .detail-title{font-size:1rem;font-weight:700;color:var(--text)}
@@ -1652,6 +1652,7 @@ function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&
 
 // ─── PRIVACY MODE ───
 let privacyMode = false;
+var isMobile = (window.innerWidth <= 640);
 
 function togglePrivacy() {
   privacyMode = !privacyMode;
@@ -1674,8 +1675,8 @@ function togglePrivacy() {
 }
 
 function maskAmt(val) {
-  if (!privacyMode) return val;
-  return `<span class="amount-mask">¥¥¥¥¥</span>`;
+  if (!privacyMode && window.innerWidth > 640) return val;
+  return '<span class="amount-mask">*****</span>';
 }
 let countdownTimer = null;
 let secondsLeft = 0;

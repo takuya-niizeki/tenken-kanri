@@ -286,6 +286,50 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
   line-height:1.6;
 }
 .m-empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.85rem}
+
+/* ─── DETAIL PANEL ─── */
+.detail-overlay{position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:400;display:none;align-items:flex-start;justify-content:flex-end}
+.detail-overlay.open{display:flex}
+.detail-panel{background:#fff;width:100%;max-width:560px;height:100vh;overflow-y:auto;box-shadow:-4px 0 20px rgba(0,0,0,.12);display:flex;flex-direction:column;animation:slideIn .25s ease}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:none}}
+.detail-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10}
+.detail-title{font-size:1rem;font-weight:700;color:var(--text)}
+.detail-subtitle{font-size:.78rem;color:var(--text2);margin-top:2px}
+.detail-close{width:32px;height:32px;border:1px solid var(--border2);border-radius:7px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--text2)}
+.detail-close:hover{background:var(--bg)}
+.detail-tabs{display:flex;border-bottom:1px solid var(--border);background:#fff;position:sticky;top:65px;z-index:9}
+.dtab{flex:1;padding:.7rem;border:none;background:none;font-family:'Noto Sans JP',sans-serif;font-size:.83rem;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.dtab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-l)}
+.detail-body{padding:1.25rem;flex:1}
+.detail-section{margin-bottom:1.5rem}
+.dsec-title{font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between}
+.caution-box{background:#fffbeb;border:1px solid #fcd34d;border-left:4px solid #f59e0b;border-radius:8px;padding:.9rem 1rem;font-size:.85rem;color:#92400e;line-height:1.7;white-space:pre-wrap}
+/* 設備テーブル */
+.equip-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.equip-table th{padding:.5rem .75rem;background:var(--bg);text-align:left;font-size:.72rem;color:var(--text2);border-bottom:1px solid var(--border)}
+.equip-table td{padding:.5rem .75rem;border-bottom:1px solid var(--border);vertical-align:middle}
+.equip-table tr:last-child td{border-bottom:none}
+.equip-input{padding:.35rem .5rem;border:1px solid var(--border2);border-radius:5px;font-size:.82rem;width:100%;font-family:'Noto Sans JP',sans-serif;outline:none}
+.equip-input:focus{border-color:var(--accent)}
+/* 履歴 */
+.hist-card{background:var(--bg);border-radius:8px;padding:.9rem 1rem;margin-bottom:.65rem;border-left:3px solid var(--accent);position:relative}
+.hist-date{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:700;color:var(--accent)}
+.hist-type{font-size:.75rem;background:var(--accent-l);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:600;margin-left:.5rem}
+.hist-result{font-size:.82rem;margin-top:.4rem;font-weight:600}
+.hist-result.ok{color:var(--green)}
+.hist-result.ng{color:var(--red)}
+.hist-result.cond{color:var(--yellow)}
+.hist-issues{font-size:.8rem;color:var(--text2);margin-top:.3rem;white-space:pre-wrap}
+.hist-inspector{font-size:.75rem;color:var(--text3);margin-top:.3rem}
+.hist-del{position:absolute;top:.6rem;right:.6rem;background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 5px;border-radius:4px}
+.hist-del:hover{background:var(--red-bg);color:var(--red)}
+/* 履歴追加フォーム */
+.hist-form{background:var(--bg);border-radius:8px;padding:1rem;margin-bottom:1rem;border:1px solid var(--border)}
+.hist-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.hist-form-grid .fg.full{grid-column:1/-1}
+.save-bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:.9rem 1.25rem;display:flex;gap:.5rem;justify-content:flex-end}
+@media(max-width:640px){.detail-panel{max-width:100%;width:100%}.hist-form-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -491,6 +535,95 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
 </div><!-- /main -->
 
+
+<!-- ─── DETAIL PANEL ─── -->
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-title" id="detailTitle">物件詳細</div>
+        <div class="detail-subtitle" id="detailSubtitle"></div>
+      </div>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-tabs">
+      <button class="dtab active" id="dtab-equip" onclick="switchDTab('equip')">🔧 設備リスト</button>
+      <button class="dtab" id="dtab-caution" onclick="switchDTab('caution')">⚠️ 注意事項</button>
+      <button class="dtab" id="dtab-hist" onclick="switchDTab('hist')">📋 点検履歴</button>
+    </div>
+
+    <!-- 設備リスト -->
+    <div id="dpanel-equip" class="detail-body">
+      <div class="detail-section">
+        <div class="dsec-title">
+          <span>設置設備一覧</span>
+          <button class="btn btn-primary btn-sm" onclick="addEquipRow()">＋ 追加</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="equip-table">
+            <thead><tr>
+              <th>設備種類</th><th style="width:60px">台数</th><th>設置場所</th><th>メモ</th><th style="width:32px"></th>
+            </tr></thead>
+            <tbody id="equipBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="save-bar">
+        <button class="btn btn-outline btn-sm" onclick="closeDetail()">閉じる</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEquip()">💾 設備リストを保存</button>
+      </div>
+    </div>
+
+    <!-- 注意事項 -->
+    <div id="dpanel-caution" class="detail-body" style="display:none">
+      <div class="detail-section">
+        <div class="dsec-title"><span>⚠️ 注意事項・特記事項</span></div>
+        <div class="caution-box" id="cautionDisplay" style="display:none"></div>
+        <div id="cautionEmpty" style="color:var(--text3);font-size:.85rem;display:none">注意事項は登録されていません。<br>編集ボタンから設定してください。</div>
+        <textarea id="cautionEdit" class="fta" rows="8" placeholder="例: 地下室は要懐中電灯&#10;鍵は1F管理室で預かり（担当: 山田さん）&#10;駐車場は裏口から入る" style="display:none;margin-top:.75rem;border-left:3px solid #f59e0b;background:#fffbeb"></textarea>
+      </div>
+      <div class="save-bar">
+        <button class="btn btn-outline btn-sm" id="cautionEditBtn" onclick="toggleCautionEdit()">✏️ 編集</button>
+        <button class="btn btn-primary btn-sm" id="cautionSaveBtn" onclick="saveCaution()" style="display:none">💾 保存</button>
+      </div>
+    </div>
+
+    <!-- 点検履歴 -->
+    <div id="dpanel-hist" class="detail-body" style="display:none">
+      <div class="hist-form">
+        <div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:.6rem">＋ 点検履歴を追加</div>
+        <div class="hist-form-grid">
+          <div class="fg"><label>点検日</label><input class="fi" id="hf-date" type="date"></div>
+          <div class="fg"><label>点検種類</label>
+            <select class="fs" id="hf-type">
+              <option value="機器点検">機器点検</option>
+              <option value="総合点検">総合点検</option>
+              <option value="防火対象物点検">防火対象物点検</option>
+              <option value="防火設備点検">防火設備点検</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="fg"><label>結果</label>
+            <select class="fs" id="hf-result">
+              <option value="異常なし">異常なし</option>
+              <option value="指摘あり">指摘あり</option>
+              <option value="要改修">要改修</option>
+              <option value="改修済み">改修済み</option>
+            </select>
+          </div>
+          <div class="fg"><label>担当者</label><input class="fi" id="hf-inspector" placeholder="氏名"></div>
+          <div class="fg full"><label>指摘事項・特記</label><textarea class="fta" id="hf-issues" placeholder="指摘内容や特記事項" style="min-height:56px"></textarea></div>
+        </div>
+        <div style="text-align:right;margin-top:.6rem">
+          <button class="btn btn-primary btn-sm" onclick="addHist()">履歴を追加</button>
+        </div>
+      </div>
+      <div class="dsec-title" style="margin-bottom:.5rem"><span>過去の点検記録</span></div>
+      <div id="histBody"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ─── RECORD MODAL ─── -->
 <div class="modal-bg" id="recModal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
@@ -566,6 +699,8 @@ label{font-size:.77rem;font-weight:600;color:var(--text2)}
 
     <div class="section-title"><span></span>メモ・備考</div>
     <div class="fg"><textarea class="fta" id="f-memo" placeholder="特記事項・備考など"></textarea></div>
+    <div class="section-title"><span></span>注意事項（入れない部屋・鍵の場所など）</div>
+    <div class="fg"><textarea class="fta" id="f-caution" placeholder="例: 地下室は要懐中電灯 / 鍵は管理室で預かり" style="border-left:3px solid #f59e0b;background:#fffbeb"></textarea></div>
 
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeModal()">キャンセル</button>
@@ -649,7 +784,7 @@ let autoRefreshTimer = null;
 const AUTO_REFRESH_MIN = 5;
 let importRows = [], importHeaders = [], mapping = {};
 
-const FKEYS = ['manageNo','propertyName','address','phone','contact','amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu','closingDay','paymentDay','memo'];
+const FKEYS = ['manageNo','propertyName','address','phone','contact','amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu','closingDay','paymentDay','memo','caution'];
 const FIELDS = [
   {key:'manageNo',      label:'管理No'},
   {key:'propertyName',  label:'物件名'},
@@ -663,7 +798,8 @@ const FIELDS = [
   {key:'closingDay',    label:'締め日'},
   {key:'paymentDay',    label:'支払日'},
   {key:'inspectionMonths', label:'点検月'},
-  {key:'memo',          label:'メモ'}
+  {key:'memo',          label:'メモ'},
+  {key:'caution',       label:'注意事項'}
 ];
 const AUTO_MAP = {
   '管理No':'manageNo',
@@ -896,6 +1032,7 @@ function renderPage() {
         return `<span class="month-badge${cls}">${m}月</span>`;
       }).join(' ') : '—';
       return `<tr>
+        <td><button class="btn btn-outline btn-sm" onclick="openDetail('${d.id}')" style="padding:.25rem .6rem;font-size:.75rem">📋 詳細</button></td>
         <td class="td-mono" style="color:var(--accent);font-weight:600">${esc(d.manageNo)||'—'}</td>
         <td class="td-name">${esc(d.propertyName)}</td>
         <td class="td-addr" title="${esc(d.address)}">${esc(d.address)||'—'}</td>
@@ -1493,6 +1630,194 @@ function setConn(state,txt){
 }
 
 function showLoad(v){ document.getElementById('loadingOv').classList.toggle('show',v); }
+
+
+// ─── DETAIL PANEL ───
+var currentDetailId = null;
+var equipEditing = [];
+var cautionEditMode = false;
+
+function openDetail(id) {
+  currentDetailId = id;
+  var d = allData.find(function(r){ return r.id === id; });
+  if (!d) return;
+  document.getElementById('detailTitle').textContent = d.propertyName || '物件詳細';
+  document.getElementById('detailSubtitle').textContent = (d.manageNo ? d.manageNo + ' ／ ' : '') + (d.address || '');
+  document.getElementById('detailOverlay').classList.add('open');
+  switchDTab('equip');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  currentDetailId = null;
+}
+
+function switchDTab(tab) {
+  ['equip','caution','hist'].forEach(function(t) {
+    document.getElementById('dtab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('dpanel-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+  if (tab === 'equip')   loadEquip();
+  if (tab === 'caution') loadCaution();
+  if (tab === 'hist')    loadHist();
+}
+
+// ── 設備リスト ──
+function loadEquip() {
+  if (!currentDetailId) return;
+  document.getElementById('equipBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--text3)">読み込み中...</td></tr>';
+  api('getEquip', { customerId: currentDetailId }).then(function(r) {
+    equipEditing = r.data || [];
+    renderEquipRows();
+  }).catch(function() {
+    equipEditing = [];
+    renderEquipRows();
+  });
+}
+
+function renderEquipRows() {
+  var tbody = document.getElementById('equipBody');
+  if (!equipEditing.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--text3)">設備が登録されていません。「＋追加」から追加してください。</td></tr>';
+    return;
+  }
+  tbody.innerHTML = equipEditing.map(function(item, i) {
+    return '<tr>' +
+      '<td><input class="equip-input" value="' + esc(item.type||'') + '" onchange="equipEditing[' + i + '].type=this.value" placeholder="例: 消火器"></td>' +
+      '<td><input class="equip-input" type="number" min="0" value="' + esc(item.count||'') + '" onchange="equipEditing[' + i + '].count=this.value" placeholder="0"></td>' +
+      '<td><input class="equip-input" value="' + esc(item.location||'') + '" onchange="equipEditing[' + i + '].location=this.value" placeholder="例: 1F廊下"></td>' +
+      '<td><input class="equip-input" value="' + esc(item.memo||'') + '" onchange="equipEditing[' + i + '].memo=this.value" placeholder="メモ"></td>' +
+      '<td><button onclick="removeEquipRow(' + i + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem">🗑</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function addEquipRow() {
+  equipEditing.push({ type:'', count:'', location:'', memo:'' });
+  renderEquipRows();
+}
+
+function removeEquipRow(i) {
+  equipEditing.splice(i, 1);
+  renderEquipRows();
+}
+
+function saveEquip() {
+  if (!currentDetailId) return;
+  showLoad(true);
+  api('saveEquip', { customerId: currentDetailId, items: equipEditing }).then(function() {
+    showToast('設備リストを保存しました', 'ok');
+  }).catch(function(e) {
+    showToast('保存失敗: ' + e.message, 'err');
+  }).finally(function() {
+    showLoad(false);
+  });
+}
+
+// ── 注意事項 ──
+function loadCaution() {
+  var d = allData.find(function(r){ return r.id === currentDetailId; });
+  var caution = (d && d.caution) || '';
+  document.getElementById('cautionDisplay').textContent = caution;
+  document.getElementById('cautionDisplay').style.display = caution ? 'block' : 'none';
+  document.getElementById('cautionEmpty').style.display = caution ? 'none' : 'block';
+  document.getElementById('cautionEdit').value = caution;
+  document.getElementById('cautionEdit').style.display = 'none';
+  document.getElementById('cautionEditBtn').style.display = '';
+  document.getElementById('cautionSaveBtn').style.display = 'none';
+  cautionEditMode = false;
+}
+
+function toggleCautionEdit() {
+  cautionEditMode = !cautionEditMode;
+  var d = allData.find(function(r){ return r.id === currentDetailId; });
+  document.getElementById('cautionEdit').value = (d && d.caution) || '';
+  document.getElementById('cautionEdit').style.display = cautionEditMode ? 'block' : 'none';
+  document.getElementById('cautionDisplay').style.display = cautionEditMode ? 'none' : ((d && d.caution) ? 'block' : 'none');
+  document.getElementById('cautionEmpty').style.display = cautionEditMode ? 'none' : ((d && d.caution) ? 'none' : 'block');
+  document.getElementById('cautionEditBtn').textContent = cautionEditMode ? 'キャンセル' : '✏️ 編集';
+  document.getElementById('cautionSaveBtn').style.display = cautionEditMode ? '' : 'none';
+}
+
+function saveCaution() {
+  var d = allData.find(function(r){ return r.id === currentDetailId; });
+  if (!d) return;
+  var newCaution = document.getElementById('cautionEdit').value.trim();
+  var data = Object.assign({}, d, { caution: newCaution });
+  showLoad(true);
+  api('update', { id: currentDetailId, data: data }).then(function() {
+    showToast('注意事項を保存しました', 'ok');
+    return loadData();
+  }).then(function() {
+    loadCaution();
+  }).catch(function(e) {
+    showToast('保存失敗: ' + e.message, 'err');
+  }).finally(function() { showLoad(false); });
+}
+
+// ── 点検履歴 ──
+function loadHist() {
+  if (!currentDetailId) return;
+  document.getElementById('histBody').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text3)">読み込み中...</div>';
+  // 今日の日付をデフォルトセット
+  if (!document.getElementById('hf-date').value) {
+    document.getElementById('hf-date').value = new Date().toISOString().slice(0,10);
+  }
+  api('getHist', { customerId: currentDetailId }).then(function(r) {
+    renderHist(r.data || []);
+  }).catch(function() {
+    document.getElementById('histBody').innerHTML = '<div style="text-align:center;padding:1rem;color:var(--text3)">読み込めませんでした</div>';
+  });
+}
+
+function renderHist(items) {
+  var body = document.getElementById('histBody');
+  if (!items.length) {
+    body.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:.85rem">点検履歴がありません</div>';
+    return;
+  }
+  body.innerHTML = items.map(function(h) {
+    var rc = { '異常なし':'ok', '指摘あり':'cond', '要改修':'ng', '改修済み':'ok' };
+    var delBtn = '<button class="hist-del" onclick="deleteHist(\"' + h.id + '\")" title="削除">🗑</button>';
+    var dateHtml = '<div><span class="hist-date">' + esc(h.date) + '</span><span class="hist-type">' + esc(h.type) + '</span></div>';
+    var resultHtml = '<div class="hist-result ' + (rc[h.result]||'') + '">結果：' + esc(h.result) + '</div>';
+    var issuesHtml = h.issues ? '<div class="hist-issues">📝 ' + esc(h.issues) + '</div>' : '';
+    var inspHtml = h.inspector ? '<div class="hist-inspector">担当：' + esc(h.inspector) + '</div>' : '';
+    return '<div class="hist-card">' + delBtn + dateHtml + resultHtml + issuesHtml + inspHtml + '</div>';
+  }).join('');
+}
+
+function addHist() {
+  if (!currentDetailId) return;
+  var data = {
+    date:      document.getElementById('hf-date').value,
+    type:      document.getElementById('hf-type').value,
+    result:    document.getElementById('hf-result').value,
+    inspector: document.getElementById('hf-inspector').value.trim(),
+    issues:    document.getElementById('hf-issues').value.trim()
+  };
+  if (!data.date) { showToast('点検日を入力してください', 'err'); return; }
+  showLoad(true);
+  api('addHist', { customerId: currentDetailId, data: data }).then(function() {
+    showToast('履歴を追加しました', 'ok');
+    document.getElementById('hf-issues').value = '';
+    document.getElementById('hf-inspector').value = '';
+    return loadHist();
+  }).catch(function(e) {
+    showToast('追加失敗: ' + e.message, 'err');
+  }).finally(function() { showLoad(false); });
+}
+
+function deleteHist(histId) {
+  if (!confirm('この履歴を削除しますか？')) return;
+  showLoad(true);
+  api('deleteHist', { histId: histId }).then(function() {
+    showToast('削除しました', 'ok');
+    return loadHist();
+  }).catch(function(e) {
+    showToast('削除失敗: ' + e.message, 'err');
+  }).finally(function() { showLoad(false); });
+}
 
 function showToast(msg,type=''){
   const t=document.getElementById('toast');

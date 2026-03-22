@@ -1461,7 +1461,17 @@ function calcTotal(){
 
 async function saveRecord(){
   const data={};
+  var isMob = window.innerWidth <= 640;
   FKEYS.forEach(k=>{ const el=document.getElementById('f-'+k); if(el)data[k]=el.value.trim(); });
+  // スマホでは非表示の金額フィールドを元の値で補完
+  if(isMob && editingId){
+    const prevD = allData.find(r=> r.id === editingId);
+    if(prevD){
+      ['amtKiki','amtSogo','amtBokaTaisho','amtBokaSetsu'].forEach(f=>{
+        if(!data[f]) data[f] = prevD[f] || '0';
+      });
+    }
+  }
   data.inspectionMonths = getCheckedMonths().join(',');
   if(!data.propertyName){ showToast('物件名は必須です','err'); return; }
   showLoad(true);
@@ -1484,7 +1494,7 @@ async function saveRecord(){
               customerId: editingId,
               data:{ changes:JSON.stringify(changes), oldTotal:oldTotal, newTotal:newTotal }
             });
-          }catch(e){ console.warn('金額履歴記録失敗:', e.message); }
+          }catch(e){ showToast('金額履歴記録失敗: ' + e.message, 'err'); }
         }
       }
       await api('update',{id:editingId,data});
